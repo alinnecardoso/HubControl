@@ -5,7 +5,6 @@ import {
   Col,
   Statistic,
   Typography,
-  Divider,
   Progress,
   Alert,
 } from 'antd';
@@ -14,11 +13,10 @@ import {
   UserOutlined,
   AlertOutlined,
   CheckCircleOutlined,
-  ExclamationCircleOutlined,
-  TrendingDownOutlined,
+  FallOutlined,
 } from '@ant-design/icons';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface ChurnInsightsProps {
   insights: any;
@@ -79,7 +77,7 @@ export const ChurnInsights: React.FC<ChurnInsightsProps> = ({ insights }) => {
               title="Taxa de Churn Atual"
               value={insights.taxa_churn_atual}
               suffix="%"
-              prefix={<TrendingDownOutlined />}
+              prefix={<FallOutlined />} // Corrigido para ícone existente
               valueStyle={{ color: '#ff4d4f' }}
               precision={2}
             />
@@ -269,4 +267,4 @@ export const ChurnInsights: React.FC<ChurnInsightsProps> = ({ insights }) => {
       </Row>
     </div>
   );
-}; 
+};
