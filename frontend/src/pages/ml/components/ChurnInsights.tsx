@@ -15,7 +15,7 @@ import {
   AlertOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
-  TrendingDownOutlined,
+  FallOutlined,
 } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
@@ -78,8 +78,8 @@ export const ChurnInsights: React.FC<ChurnInsightsProps> = ({ insights }) => {
             <Statistic
               title="Taxa de Churn Atual"
               value={insights.taxa_churn_atual}
-              suffix="%"
-              prefix={<TrendingDownOutlined />}
+ suffix="%"
+ prefix={<FallOutlined />}
               valueStyle={{ color: '#ff4d4f' }}
               precision={2}
             />
@@ -199,7 +199,7 @@ export const ChurnInsights: React.FC<ChurnInsightsProps> = ({ insights }) => {
               yField="impact"
               label={{
                 position: 'middle',
-                style: {
+                style: { 
                   fill: '#FFFFFF',
                   opacity: 0.6,
                 },

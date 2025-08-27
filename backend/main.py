@@ -1,6 +1,28 @@
+import subprocess
+import sys
+import importlib
+
+def install_package(package):
+    try:
+        importlib.import_module(package)
+        print(f"{package} is already installed.")
+    except ImportError:
+        print(f"{package} not found. Installing...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+            print(f"{package} installed successfully.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error installing {package}: {e}")
+            sys.exit(1)
+
+# Check and install required packages
+install_package("fastapi")
+install_package("uvicorn")
+
 """
 Aplicação principal HubControl
 """
+
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware

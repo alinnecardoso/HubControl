@@ -1,7 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { store } from './store/index.ts';
 import ptBR from 'antd/locale/pt_BR';
 
@@ -20,6 +20,19 @@ import CSAT from './pages/csat/CSAT.tsx';
 import MLChurn from './pages/ml/MLChurn.tsx';
 import Usuarios from './pages/usuarios/Usuarios.tsx';
 
+// Placeholder functions for role checking (will be replaced with actual logic)
+const isAssessor = (): boolean => {
+  // Replace with actual logic to check if the user has the 'assessor' role
+  return false; // Default to false for now
+};
+
+const isStaff = (): boolean => {
+  // Replace with actual logic to check if the user has a staff role ('cs', 'diretoria', 'admin', 'financeiro')
+  return false; // Default to false for now
+};
+
+const Formularios = () => <div>Formularios Page Placeholder</div>; // Temporary placeholder
+
 // Styles
 import './styles/global.css';
 
@@ -31,22 +44,32 @@ const App: React.FC = () => {
         theme={{
           algorithm: theme.defaultAlgorithm,
           token: {
-            colorPrimary: '#1890ff',
+            colorPrimary: '#F22987', // Use primary color from design spec
             borderRadius: 6,
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
           },
         }}
       >
-        <Router>
+        <BrowserRouter>
           <Routes>
-            {/* Rotas de autenticação */}
+            {/* Authentication Routes */}
             <Route path="/auth" element={<AuthLayout />}>
               <Route path="login" element={<Login />} />
+              {/* Add other auth routes like signup, forgot password here if needed */}
             </Route>
 
-            {/* Rotas principais com layout */}
-            <Route path="/" element={<MainLayout />}>
+            {/* Main Application Routes with MainLayout */}
+            <Route
+              path="/"
+              element={<MainLayout />} // This route defines the MainLayout for its children
+            >
+              {/* Default redirect within MainLayout based on role */}
               <Route index element={<Dashboard />} />
+
+              {/* Assessor Routes */}
+              <Route path="formularios" element={<Formularios />} /> {/* Access /formularios */}
+
+              {/* Staff Routes */}
               <Route path="clientes" element={<Clientes />} />
               <Route path="vendas" element={<Vendas />} />
               <Route path="contratos" element={<Contratos />} />
@@ -54,9 +77,13 @@ const App: React.FC = () => {
               <Route path="csat" element={<CSAT />} />
               <Route path="ml/churn" element={<MLChurn />} />
               <Route path="usuarios" element={<Usuarios />} />
+              {/* Add other staff routes here (e.g., /adman, /dimensoes-health) */}
             </Route>
+
+            {/* Add a Not Found page later */}
+            {/* <Route path="*" element={<NotFound />} /> */}
           </Routes>
-        </Router>
+        </BrowserRouter>
       </ConfigProvider>
     </Provider>
   );
