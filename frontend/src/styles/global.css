@@ -37,3 +37,21 @@ code {
   background: #f0f2f5;
   min-height: calc(100vh - 64px);
 } 
+
+/* Responsive styles for Ant Design Statistic component */
+@media (max-width: 767px) { /* md breakpoint is 768px, so max-width: 767px targets smaller screens */
+  /* Adjust font size of the statistic value */
+  .ant-statistic-content {
+    font-size: 1.5rem !important; /* Adjust size as needed */
+  }
+
+  /* Adjust font size of the statistic title */
+  .ant-statistic-title {
+    font-size: 0.8rem !important; /* Adjust size as needed */
+  }
+
+  /* Adjust size of the statistic icon */
+  .ant-statistic-icon {
+    font-size: 2rem !important; /* Adjust size as needed */
+  }
+}

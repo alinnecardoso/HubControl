@@ -4,8 +4,8 @@ import {
   Card,
   Row,
   Col,
-  Button,
   Space,
+  Button,
   Typography,
   Alert,
   Tabs,
@@ -205,32 +205,43 @@ const MLChurn: React.FC = () => {
 
   return (
     <div>
-      {/* Header */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col span={24}>
+      {/* Header Section */}
+      <Row gutter={[16, 16]} className="mb-6">
+        <Col xs={24}>
           <Card>
-            <Row gutter={16} align="middle">
-              <Col>
-                <RobotOutlined style={{ fontSize: 32, color: '#1890ff' }} />
+            <Row
+              gutter={[16, 16]}
+              align="middle"
+              className="flex-col md:flex-row"
+            >
+              <Col className="flex items-center justify-center md:justify-start">
+                <RobotOutlined className="text-4xl text-blue-500" />
               </Col>
-              <Col flex="auto">
-                <Title level={3} style={{ margin: 0 }}>
+              <Col flex="auto" className="text-center md:text-left">
+                <Title level={3} className="mb-0 text-xl md:text-2xl">
                   Machine Learning - Previsão de Churn
                 </Title>
-                <Text type="secondary">Sistema para identificar clientes em risco de churn</Text>
+                <Text type="secondary" className="text-sm md:text-base">
+                  Sistema para identificar clientes em risco de churn
+                </Text>
               </Col>
-              <Col>
-                <Space>
+              <Col className="flex justify-center md:justify-end w-full md:w-auto">
+                <Space direction={window.innerWidth < 768 ? 'vertical' : 'horizontal'}> {/* Stack buttons on small screens */}
                   <Button
                     type="primary"
                     icon={<PlayCircleOutlined />}
                     onClick={handleTrainModels}
                     loading={trainingStatus === 'training'}
                     disabled={trainingStatus === 'training'}
+                    className="w-full md:w-auto"
                   >
                     {trainingStatus === 'training' ? 'Treinando...' : 'Treinar Modelos'}
                   </Button>
-                  <Button icon={<ReloadOutlined />} onClick={() => window.location.reload()}>
+                  <Button
+                    icon={<ReloadOutlined />}
+                    onClick={() => window.location.reload()}
+                    className="w-full md:w-auto"
+                  >
                     Atualizar
                   </Button>
                 </Space>
@@ -241,8 +252,8 @@ const MLChurn: React.FC = () => {
       </Row>
 
       {/* KPIs */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col span={6}>
+      <Row gutter={[16, 16]} className="mb-6">
+        <Col xs={24} sm={12} md={6}> {/* Stack on xs, 2 per row on sm, 4 per row on md+ */}
           <Card>
             <Statistic
               title="Status dos Modelos"
@@ -258,23 +269,23 @@ const MLChurn: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={24} sm={12} md={6}> {/* Stack on xs, 2 per row on sm, 4 per row on md+ */}
           <Card>
             <Statistic title="Total de Previsões" value={predictions.length} prefix={<EyeOutlined />} />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={24} sm={12} md={6}> {/* Stack on xs, 2 per row on sm, 4 per row on md+ */}
           <Card>
             <Statistic
-              title="Clientes de Alto Risco"
+              title="Clientes Alto Risco"
               value={insights?.clientes_risco_alto ?? 0}
               prefix={<AlertOutlined style={{ color: '#ff4d4f' }} />}
               valueStyle={{ color: '#ff4d4f' }}
             />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
+        <Col xs={24} sm={12} md={6}>
+          <Card> {/* Stack on xs, 2 per row on sm, 4 per row on md+ */}
             <Statistic
               title="Taxa de Churn Atual"
               value={insights?.taxa_churn_atual ?? 0}
@@ -288,8 +299,8 @@ const MLChurn: React.FC = () => {
 
       {/* Aviso */}
       {!isTrained && (
-        <Row style={{ marginBottom: 24 }}>
-          <Col span={24}>
+        <Row className="mb-6">
+          <Col xs={24}>
             <Alert
               message="Modelos não treinados"
               description="É necessário treinar os modelos antes de fazer previsões. Clique em 'Treinar Modelos' para começar."
@@ -306,7 +317,7 @@ const MLChurn: React.FC = () => {
       )}
 
       {/* Conteúdo principal - Tabs v5 */}
-      <Tabs
+      <Tabs // Ant Design Tabs are generally responsive
         defaultActiveKey="prediction"
         size="large"
         items={[
@@ -327,6 +338,7 @@ const MLChurn: React.FC = () => {
             label: 'Histórico de Previsões',
             children: (
               <Card title="Previsões Realizadas">
+                {/* Ant Design Table handles responsiveness internally or via scroll */}
                 <Table
                   columns={columns}
                   dataSource={predictions}

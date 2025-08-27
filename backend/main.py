@@ -32,7 +32,6 @@ import time
 import logging
 
 from config import settings, CORS_CONFIG
-from database.connection import init_db, close_db
 from api.v1.api import api_router
 
 

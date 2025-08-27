@@ -2,12 +2,25 @@
 Configurações da aplicação HubControl
 """
 from typing import Optional, List
-from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
+def _split_csv(value: str | None) -> List[str]:
+    if not value or value == "*":
+        return ["*"]
+    return [x.strip() for x in value.split(",") if x.strip()]
 
 class Settings(BaseSettings):
     """Configurações da aplicação"""
+
+    # Carregar .env e ignorar extras desconhecidos (evita extra_forbidden)
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",    # ← chave para não quebrar com variáveis que o modelo não conhece
+    )
 
     # Configurações básicas
     DEBUG: bool = Field(default=False, description="Modo debug")
@@ -35,26 +48,58 @@ class Settings(BaseSettings):
     )
 
     # Configurações de segurança
-    SECRET_KEY: str = Field(
-        default="hubcontrol-secret-key-change-in-production",
+    SECRET_KEY: SecretStr = Field(
+        default=..., # This should be set from environment variables
         description="Chave secreta para JWT"
     )
+    # Use a plain string for the default value if it's not sensitive and you
+    # don't require it to be loaded from env variables specifically as a SecretStr
+    # SECRET_KEY: str = Field(
+    #     default="hubcontrol-secret-key-change-in-production",
+    #    description="Chave secreta para JWT"
+    #)
     JWT_ALGORITHM: str = Field(default="HS256", description="Algoritmo JWT")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, description="Expiração do token JWT")
 
     # Firebase (opcional)
     FIREBASE_PROJECT_ID: Optional[str] = Field(default=None, description="ID do projeto Firebase")
-    FIREBASE_PRIVATE_KEY: Optional[str] = Field(default=None, description="Chave privada Firebase")
+    # Consider using SecretStr for sensitive keys
+    FIREBASE_PRIVATE_KEY: Optional[SecretStr] = Field(default=None, description="Chave privada Firebase")
     FIREBASE_CLIENT_EMAIL: Optional[str] = Field(default=None, description="Email do cliente Firebase")
-    FIREBASE_SERVICE_ACCOUNT_KEY_PATH: Optional[str] = Field(default=None, description="Path to the Firebase service account key file")
+    # Consider using SecretStr for sensitive paths if the content is read from it
+    FIREBASE_SERVICE_ACCOUNT_KEY_PATH: Optional[SecretStr] = Field(default=None, description="Path to the Firebase service account key file")
 
-    # Configurações de email
+    # Firebase / Google Location (use consistent naming)
+    firebase_location: str = Field(default="us-central1", description="Localização dos recursos do Google Cloud (ex: us-central1)") # **não use _location**
+
+    # Google Cloud Platform / BigQuery
+    google_project_id: Optional[str] = Field(
+        default=None,
+        description="ID do projeto Google Cloud (para BigQuery e outros serviços)"
+    )
+    google_application_credentials: Optional[str] = Field(
+        default=None,
+        description="Path para o arquivo de credenciais da conta de serviço Google Cloud"
+    )
+    bigquery_dataset: Optional[str] = Field(
+        default=None,
+        description="Dataset do BigQuery a ser utilizado"
+    )
+
+    # Configurações de email (pode ser SMTP ou outro serviço)
     SMTP_HOST: Optional[str] = Field(default=None, description="Host SMTP")
     SMTP_PORT: int = Field(default=587, description="Porta SMTP")
     SMTP_USER: Optional[str] = Field(default=None, description="Usuário SMTP")
-    SMTP_PASSWORD: Optional[str] = Field(default=None, description="Senha SMTP")
+    SMTP_PASSWORD: Optional[SecretStr] = Field(default=None, description="Senha SMTP") # Use SecretStr for passwords
+    SMTP_USE_TLS: bool = Field(default=True, description="Usar TLS para SMTP")
 
-    # Configurações do Slack
+    # Duplicate SMTP fields (remove these if they are not intended)
+    smtp_server: Optional[str] = Field( # Removed default None as it is redundant with Optional
+        description="Servidor SMTP (duplicata?)"
+    )
+    smtp_username: Optional[str] = Field(
+        default=None,
+        description="Nome de usuário SMTP (duplicata?)" )
     SLACK_WEBHOOK_URL: Optional[str] = Field(default=None, description="Webhook do Slack")
 
     # Configurações de upload
@@ -65,12 +110,12 @@ class Settings(BaseSettings):
     REDIS_URL: str = Field(default="redis://localhost:6379", description="URL do Redis")
 
     # Configurações de CORS
-    CORS_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:8000"],
-        description="Origens permitidas para CORS"
-    )
+    # Changed to a string field to handle CSV from environment variable
+    cors_origins: str = "*"  # CSV sem espaços ou *
 
-    # Rate limiting
+    def cors_origins_list(self) -> List[str]:
+        return _split_csv(self.cors_origins)
+
     RATE_LIMIT_PER_MINUTE: int = Field(default=60, description="Limite de requisições por minuto")
 
     # Health Score thresholds
@@ -81,10 +126,6 @@ class Settings(BaseSettings):
     # Renovação
     DIAS_ALERTA_VENCIMENTO: int = Field(default=30, description="Dias para alerta de vencimento")
     DIAS_ALERTA_CHURN: int = Field(default=7, description="Dias para alerta de churn")
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
 
 # Instância global das configurações
 settings = Settings()

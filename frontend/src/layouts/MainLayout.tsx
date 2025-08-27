@@ -10,7 +10,7 @@ import {
   Space,
   Typography,
   theme,
-} from 'antd';
+} from 'antd'; // Import Menu types
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -23,9 +23,12 @@ import {
   RobotOutlined,
   TeamOutlined,
   BellOutlined,
-  LogoutOutlined,
+  LogoutOutlined, // Keep LogoutOutlined for user menu
   SettingOutlined,
 } from '@ant-design/icons';
+import Logo from '../assets/logo-01.png'; // Import the logo
+import { MenuItemType, MenuDividerType } from 'antd/es/menu/interface'; // Import specific types
+
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -39,51 +42,51 @@ const MainLayout: React.FC = () => {
   } = theme.useToken();
 
   // Menu items
-  const menuItems = [
-    {
+  const menuItems: MenuItemType[] = [ // Explicitly type as MenuItemType[]
+    { 
       key: '/',
       icon: <DashboardOutlined />,
       label: 'Dashboard',
     },
     {
       key: '/clientes',
-      icon: <UserOutlined />,
+      icon: <UserOutlined />, // Use UserOutlined component directly
       label: 'Clientes',
     },
     {
       key: '/vendas',
-      icon: <ShoppingCartOutlined />,
+      icon: <ShoppingCartOutlined />, // Use ShoppingCartOutlined component directly
       label: 'Vendas',
     },
     {
       key: '/contratos',
-      icon: <FileTextOutlined />,
+      icon: <FileTextOutlined />, // Use FileTextOutlined component directly
       label: 'Contratos',
     },
     {
       key: '/health-score',
-      icon: <HeartOutlined />,
+      icon: <HeartOutlined />, // Use HeartOutlined component directly
       label: 'Health Score',
     },
     {
       key: '/csat',
-      icon: <SmileOutlined />,
+      icon: <SmileOutlined />, // Use SmileOutlined component directly
       label: 'CSAT',
     },
     {
       key: '/ml/churn',
-      icon: <RobotOutlined />,
+      icon: <RobotOutlined />, // Use RobotOutlined component directly
       label: 'ML - Churn',
     },
     {
       key: '/usuarios',
-      icon: <TeamOutlined />,
+      icon: <TeamOutlined />, // Use TeamOutlined component directly
       label: 'Usuários',
     },
   ];
 
   // User menu
-  const userMenuItems = [
+  const userMenuItems: (MenuItemType | MenuDividerType)[] = [ // Explicitly type
     {
       key: 'profile',
       icon: <UserOutlined />,
@@ -95,12 +98,13 @@ const MainLayout: React.FC = () => {
       label: 'Configurações',
     },
     {
-      type: 'divider',
+      // Correctly define the divider type
+      type: 'divider' as 'divider', // Explicitly cast to 'divider'
     },
     {
       key: 'logout',
-      icon: <LogoutOutlined />,
       label: 'Sair',
+      icon: <LogoutOutlined />, // Use LogoutOutlined component directly
       onClick: () => {
         // TODO: Implementar logout
         navigate('/auth/login');
@@ -114,7 +118,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider trigger={null} collapsible collapsed={collapsed}>
+      <Sider trigger={null} collapsible collapsed={collapsed} breakpoint="sm" collapsedWidth="0">
         <div style={{ 
           height: 64, 
           display: 'flex', 
@@ -124,9 +128,7 @@ const MainLayout: React.FC = () => {
           margin: 16,
           borderRadius: 6
         }}>
-          <Title level={4} style={{ color: 'white', margin: 0 }}>
-            {collapsed ? 'HC' : 'HubControl'}
-          </Title>
+          <img src={Logo} alt="HubControl Logo" style={{ height: '32px', display: 'block', margin: '0 auto' }} />
         </div>
         
         <Menu
@@ -184,8 +186,8 @@ const MainLayout: React.FC = () => {
         </Header>
         
         <Content
-          style={{
-            margin: '24px 16px',
+          className="p-6 md:p-6 sm:p-4 xs:p-2" // Use Tailwind responsive padding classes
+          style={{ // Keep other styles
             padding: 24,
             minHeight: 280,
             background: colorBgContainer,
