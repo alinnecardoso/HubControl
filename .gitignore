@@ -11,3 +11,6 @@ build/
 venv/
 __pycache__/
 .env
+node_modules/
+.cache/
+venv/
