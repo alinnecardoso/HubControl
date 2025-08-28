@@ -311,4 +311,61 @@ async def ml_health_check():
             "status": "unhealthy",
             "ml_service_available": False,
             "error": str(e)
-        } 
+        }
+
+
+@router.get("/cache/stats", summary="Estatísticas do cache")
+async def get_cache_stats():
+    """
+    Retorna estatísticas do sistema de cache de ML.
+    """
+    try:
+        stats = ml_service.predictor.get_cache_stats()
+        return {
+            "cache_stats": stats,
+            "timestamp": "2024-01-01T00:00:00Z"  # TODO: usar timestamp real
+        }
+    except Exception as e:
+        logger.error(f"Erro ao obter stats do cache: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao obter estatísticas: {str(e)}")
+
+
+@router.delete("/cache/clear", summary="Limpar todo o cache")
+async def clear_all_cache():
+    """
+    Limpa todo o cache de ML.
+    """
+    try:
+        from ml.model_cache import model_cache
+        success = model_cache.clear_all_cache()
+        
+        if success:
+            return {
+                "message": "Cache limpo com sucesso",
+                "cleared": True
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Falha ao limpar cache")
+            
+    except Exception as e:
+        logger.error(f"Erro ao limpar cache: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao limpar cache: {str(e)}")
+
+
+@router.delete("/cache/client/{cliente_id}", summary="Limpar cache de cliente")
+async def clear_client_cache(cliente_id: str):
+    """
+    Limpa cache relacionado a um cliente específico.
+    """
+    try:
+        ml_service.predictor.clear_client_cache(cliente_id)
+        
+        return {
+            "message": f"Cache do cliente {cliente_id} limpo com sucesso",
+            "cliente_id": cliente_id,
+            "cleared": True
+        }
+        
+    except Exception as e:
+        logger.error(f"Erro ao limpar cache do cliente: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao limpar cache: {str(e)}") 

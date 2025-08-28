@@ -1,0 +1,3 @@
+"""
+Inicialização dos endpoints
+"""

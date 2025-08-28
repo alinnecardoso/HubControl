@@ -10,9 +10,11 @@ class Settings(BaseSettings):
     """Configurações da aplicação"""
     
     # Configurações básicas
-    DEBUG: bool = Field(default=False, description="Modo debug")
-    LOG_LEVEL: str = Field(default="INFO", description="Nível de log")
-    LOG_FILE: str = Field(default="logs/hubcontrol.log", description="Arquivo de log")
+    debug: bool = Field(default=True, description="Modo debug")
+    log_level: str = Field(default="INFO", description="Nível de log") 
+    log_file: str = Field(default="logs/hubcontrol.log", description="Arquivo de log")
+    app_name: str = Field(default="HubControl", description="Nome da aplicação")
+    app_version: str = Field(default="1.0.0", description="Versão da aplicação")
     
     # Supabase
     SUPABASE_URL: str = Field(
@@ -84,15 +86,19 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"
 
 
 # Instância global das configurações
 settings = Settings()
 
-# Constantes da aplicação
-APP_NAME = "HubControl"
-APP_VERSION = "1.0.0"
-APP_DESCRIPTION = "Sistema de Gestão de Clientes e Vendas com Machine Learning"
+# Configurações de CORS
+CORS_CONFIG = {
+    "allow_origins": settings.CORS_ORIGINS,
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"]
+}
 
 # Configurações de paginação
 DEFAULT_PAGE_SIZE = 20

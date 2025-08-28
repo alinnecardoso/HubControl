@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(python test:*)",
+      "Bash(python3:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(where python)",
+      "Bash(py -m pip install:*)",
+      "Bash(where python3)",
+      "Bash(npm install)",
+      "Bash(npm start)",
+      "Bash(timeout:*)",
+      "Bash(python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

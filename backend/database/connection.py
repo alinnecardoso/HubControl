@@ -1,13 +1,13 @@
 """
 Conexão com o banco de dados PostgreSQL
 """
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
 import logging
 
-from config import DATABASE_CONFIG
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +28,13 @@ async def init_db():
     try:
         # Cria o engine do banco
         engine = create_engine(
-            DATABASE_CONFIG["url"],
-            echo=DATABASE_CONFIG["echo"],
+            settings.DATABASE_URL,
+            echo=settings.debug,
             poolclass=QueuePool,
-            pool_size=DATABASE_CONFIG["pool_size"],
-            max_overflow=DATABASE_CONFIG["max_overflow"],
-            pool_pre_ping=DATABASE_CONFIG["pool_pre_ping"],
-            pool_recycle=DATABASE_CONFIG["pool_recycle"]
+            pool_size=5,
+            max_overflow=10,
+            pool_pre_ping=True,
+            pool_recycle=3600
         )
         
         # Cria a session factory
@@ -46,7 +46,8 @@ async def init_db():
         
         # Testa a conexão
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            result = conn.execute(text("SELECT 1"))
+            result.fetchone()
         
         logger.info("Conexão com o banco de dados estabelecida com sucesso!")
         
@@ -108,7 +109,8 @@ def check_db_connection() -> bool:
             return False
         
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            result = conn.execute(text("SELECT 1"))
+            result.fetchone()
         return True
         
     except Exception:
@@ -134,7 +136,7 @@ def get_db_info() -> dict:
             }
             
             # Testa uma query simples
-            result = conn.execute("SELECT version()")
+            result = conn.execute(text("SELECT version()"))
             version = result.fetchone()[0]
             info["postgres_version"] = version
             
