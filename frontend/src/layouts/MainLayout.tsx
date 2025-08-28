@@ -8,7 +8,6 @@ import {
   Dropdown,
   Badge,
   Space,
-  Typography,
   theme,
 } from 'antd';
 import {
@@ -26,9 +25,9 @@ import {
   LogoutOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
+import logo from '../assets/logo-01.png';
 
 const { Header, Sider, Content } = Layout;
-const { Title } = Typography;
 
 const MainLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -82,29 +81,25 @@ const MainLayout: React.FC = () => {
     },
   ];
 
-  // User menu
+  // User menu para Dropdown (Ant Design v5)
   const userMenuItems = [
     {
       key: 'profile',
       icon: <UserOutlined />,
       label: 'Meu Perfil',
+      onClick: () => navigate('/profile'),
     },
     {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Configurações',
-    },
-    {
-      type: 'divider',
+      onClick: () => navigate('/settings'),
     },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: 'Sair',
-      onClick: () => {
-        // TODO: Implementar logout
-        navigate('/auth/login');
-      },
+      onClick: () => navigate('/auth/login'),
     },
   ];
 
@@ -113,40 +108,60 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div style={{ 
-          height: 64, 
-          display: 'flex', 
-          alignItems: 'center', 
+    <Layout style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        style={{ background: '#0D0D0D', borderRight: '1px solid #1A1A1A', boxShadow: '0 2px 8px #0004' }}
+      >
+        <div style={{
+          height: 64,
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
-          background: 'rgba(255, 255, 255, 0.1)',
+          background: 'rgba(255,255,255,0.04)',
           margin: 16,
-          borderRadius: 6
+          borderRadius: 16,
         }}>
-          <Title level={4} style={{ color: 'white', margin: 0 }}>
-            {collapsed ? 'HC' : 'HubControl'}
-          </Title>
+          <img
+            src={logo}
+            alt="HubControl"
+            style={{
+              height: collapsed ? 32 : 40,
+              transition: 'height 0.2s',
+              filter: 'drop-shadow(0 2px 6px #0008)',
+              objectFit: 'contain',
+              maxWidth: '80%',
+            }}
+          />
         </div>
-        
         <Menu
           theme="dark"
           mode="inline"
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={handleMenuClick}
+          style={{
+            background: 'transparent',
+            color: '#E6E8EA',
+            fontSize: 16,
+            borderRadius: 16,
+          }}
         />
       </Sider>
-      
       <Layout>
-        <Header style={{ 
-          padding: '0 16px', 
-          background: colorBgContainer,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
+        <Header
+          style={{
+            padding: '0 16px',
+            background: '#141414',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 8px #0008',
+            borderBottom: '1px solid #1A1A1A',
+          }}
+        >
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -155,41 +170,48 @@ const MainLayout: React.FC = () => {
               fontSize: '16px',
               width: 64,
               height: 64,
+              color: '#F22987',
             }}
           />
-          
           <Space size="large">
             <Badge count={5} size="small">
-              <Button 
-                type="text" 
-                icon={<BellOutlined />} 
+              <Button
+                type="text"
+                icon={<BellOutlined style={{ color: '#6ACED9' }} />}
                 size="large"
+                style={{ color: '#6ACED9', background: 'transparent' }}
               />
             </Badge>
-            
             <Dropdown
-              menu={{ items: userMenuItems }}
+              menu={{
+                items: userMenuItems,
+                onClick: ({ key }) => {
+                  const item = userMenuItems.find(i => i.key === key);
+                  if (item && item.onClick) item.onClick();
+                },
+              }}
               placement="bottomRight"
               arrow
             >
               <Space style={{ cursor: 'pointer' }}>
-                <Avatar 
-                  icon={<UserOutlined />} 
-                  style={{ backgroundColor: '#1890ff' }}
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{ backgroundColor: '#F22987', color: 'white', boxShadow: '0 2px 8px #0004' }}
                 />
-                <span>Admin</span>
+                <span style={{ color: '#E6E8EA', fontWeight: 500 }}>Admin</span>
               </Space>
             </Dropdown>
           </Space>
         </Header>
-        
         <Content
           style={{
             margin: '24px 16px',
             padding: 24,
             minHeight: 280,
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
+            background: '#141414',
+            borderRadius: 20,
+            color: '#E6E8EA',
+            boxShadow: '0 4px 24px #00000033',
           }}
         >
           <Outlet />
@@ -199,4 +221,4 @@ const MainLayout: React.FC = () => {
   );
 };
 
-export default MainLayout; 
+export default MainLayout;
