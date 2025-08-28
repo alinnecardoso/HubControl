@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Typography, Row, Col, Statistic, Progress } from 'antd';
+import { Card, Typography, Row, Col, Statistic } from 'antd';
 import { Bar } from 'react-chartjs-2';
 import { FallOutlined } from '@ant-design/icons';
 
