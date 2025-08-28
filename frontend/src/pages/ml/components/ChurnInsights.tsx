@@ -8,13 +8,13 @@ import {
   Progress,
   Alert,
 } from 'antd';
-import { Pie, Column, Line } from '@ant-design/plots';
 import {
   UserOutlined,
   AlertOutlined,
   CheckCircleOutlined,
   FallOutlined,
 } from '@ant-design/icons';
+import { RiskDistributionChart, ChurnTrendChart } from '../../../components/charts/ChurnCharts';
 
 const { Text } = Typography;
 
@@ -35,19 +35,20 @@ export const ChurnInsights: React.FC<ChurnInsightsProps> = ({ insights }) => {
   }
 
   // Dados para gráficos
-  const riskDistributionData = [
-    { type: 'Baixo Risco', value: insights.clientes_risco_baixo, color: '#52c41a' },
-    { type: 'Médio Risco', value: insights.clientes_risco_medio, color: '#faad14' },
-    { type: 'Alto Risco', value: insights.clientes_risco_alto, color: '#ff4d4f' },
-  ];
+  const riskDistributionData = {
+    baixo: insights.clientes_risco_baixo,
+    medio: insights.clientes_risco_medio,
+    alto: insights.clientes_risco_alto,
+    critico: insights.clientes_risco_critico || 0,
+  };
 
   const churnTrendData = [
-    { month: 'Jan', churn_rate: 5.2, predicted: 5.8 },
-    { month: 'Fev', churn_rate: 4.8, predicted: 5.1 },
-    { month: 'Mar', churn_rate: 6.1, predicted: 6.3 },
-    { month: 'Abr', churn_rate: 5.9, predicted: 6.0 },
-    { month: 'Mai', churn_rate: 6.5, predicted: 6.7 },
-    { month: 'Jun', churn_rate: 6.9, predicted: 7.2 },
+    { month: 'Jan', churnRate: 5.2, predictions: 5.8, accuracy: 92 },
+    { month: 'Fev', churnRate: 4.8, predictions: 5.1, accuracy: 94 },
+    { month: 'Mar', churnRate: 6.1, predictions: 6.3, accuracy: 91 },
+    { month: 'Abr', churnRate: 5.9, predictions: 6.0, accuracy: 93 },
+    { month: 'Mai', churnRate: 6.5, predictions: 6.7, accuracy: 90 },
+    { month: 'Jun', churnRate: insights.taxa_churn_atual, predictions: insights.taxa_churn_atual + 0.3, accuracy: 89 },
   ];
 
   const topFactorsData = [
@@ -108,24 +109,7 @@ export const ChurnInsights: React.FC<ChurnInsightsProps> = ({ insights }) => {
       {/* Distribuição de Risco */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col span={12}>
-          <Card title="Distribuição de Risco por Cliente">
-            <Pie
-              data={riskDistributionData}
-              angleField="value"
-              colorField="type"
-              radius={0.8}
-              label={{
-                type: 'outer',
-                content: '{name}: {percentage}',
-              }}
-              interactions={[
-                {
-                  type: 'element-active',
-                },
-              ]}
-              height={300}
-            />
-          </Card>
+          <RiskDistributionChart data={riskDistributionData} />
         </Col>
         <Col span={12}>
           <Card title="Análise de Risco Detalhada">
@@ -166,24 +150,7 @@ export const ChurnInsights: React.FC<ChurnInsightsProps> = ({ insights }) => {
       {/* Tendência de Churn */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col span={24}>
-          <Card title="Tendência de Churn (Últimos 6 Meses)">
-            <Line
-              data={churnTrendData}
-              xField="month"
-              yField="churn_rate"
-              seriesField="type"
-              yAxis={{
-                label: {
-                  formatter: (v) => `${v}%`,
-                },
-              }}
-              legend={{
-                position: 'top',
-              }}
-              height={300}
-              color={['#ff4d4f', '#1890ff']}
-            />
-          </Card>
+          <ChurnTrendChart data={churnTrendData} />
         </Col>
       </Row>
 
@@ -191,27 +158,24 @@ export const ChurnInsights: React.FC<ChurnInsightsProps> = ({ insights }) => {
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col span={24}>
           <Card title="Principais Fatores de Churn">
-            <Column
-              data={topFactorsData}
-              xField="factor"
-              yField="impact"
-              label={{
-                position: 'middle',
-                style: {
-                  fill: '#FFFFFF',
-                  opacity: 0.6,
-                },
-              }}
-              xAxis={{
-                label: {
-                  autoRotate: false,
-                  autoHide: true,
-                  autoEllipsis: true,
-                },
-              }}
-              height={300}
-              color="#ff4d4f"
-            />
+            <div style={{ padding: '16px 0' }}>
+              {topFactorsData.map((factor, index) => (
+                <div key={index} style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <Text strong>{factor.factor}</Text>
+                    <Text>{factor.impact}% de impacto</Text>
+                  </div>
+                  <Progress
+                    percent={factor.impact}
+                    strokeColor="#ff4d4f"
+                    showInfo={false}
+                  />
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    {factor.count} clientes afetados
+                  </Text>
+                </div>
+              ))}
+            </div>
           </Card>
         </Col>
       </Row>

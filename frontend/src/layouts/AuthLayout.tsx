@@ -6,15 +6,13 @@ const { Content } = Layout;
 
 const AuthLayout: React.FC = () => {
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
+    <Layout style={{ minHeight: '100vh'}}>
       <Content style={{ padding: '24px' }}>
         <div style={{ 
-          maxWidth: '400px', 
-          margin: '0 auto', 
-          background: 'white', 
+          maxWidth: '600px', 
+          margin: '0 auto',  
           padding: '32px',
           borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
         }}>
           <Outlet />
         </div>

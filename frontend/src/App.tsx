@@ -2,23 +2,26 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import { Provider } from 'react-redux';
-import { store } from './store/index.ts';
+import { store } from './store/index';
 import ptBR from 'antd/locale/pt_BR';
 
 // Layouts
-import MainLayout from './layouts/MainLayout.tsx';
-import AuthLayout from './layouts/AuthLayout.tsx';
+import MainLayout from './layouts/MainLayout';
+import AuthLayout from './layouts/AuthLayout';
+
+// Components
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
-import Login from './pages/auth/Login.tsx';
-import Dashboard from './pages/Dashboard.tsx';
-import Clientes from './pages/clientes/Clientes.tsx';
-import Vendas from './pages/vendas/Vendas.tsx';
-import Contratos from './pages/contratos/Contratos.tsx';
-import HealthScore from './pages/health-score/HealthScore.tsx';
-import CSAT from './pages/csat/CSAT.tsx';
-import MLChurn from './pages/ml/MLChurn.tsx';
-import Usuarios from './pages/usuarios/Usuarios.tsx';
+import Login from './pages/auth/Login';
+import Dashboard from './pages/Dashboard';
+import Clientes from './pages/clientes/Clientes';
+import Vendas from './pages/vendas/Vendas';
+import Contratos from './pages/contratos/Contratos';
+import HealthScore from './pages/health-score/HealthScore';
+import CSAT from './pages/csat/CSAT';
+import MLChurn from './pages/ml/MLChurn';
+import Usuarios from './pages/usuarios/Usuarios';
 
 // Styles
 import './styles/global.css';
@@ -47,13 +50,48 @@ const App: React.FC = () => {
             {/* Rotas principais com layout */}
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Dashboard />} />
-              <Route path="clientes" element={<Clientes />} />
-              <Route path="vendas" element={<Vendas />} />
-              <Route path="contratos" element={<Contratos />} />
-              <Route path="health-score" element={<HealthScore />} />
-              <Route path="csat" element={<CSAT />} />
-              <Route path="ml/churn" element={<MLChurn />} />
-              <Route path="usuarios" element={<Usuarios />} />
+              
+              <Route path="clientes" element={
+                <ProtectedRoute requiredModules={['clientes']}>
+                  <Clientes />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="vendas" element={
+                <ProtectedRoute requiredModules={['vendas']}>
+                  <Vendas />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="contratos" element={
+                <ProtectedRoute requiredModules={['contratos']}>
+                  <Contratos />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="health-score" element={
+                <ProtectedRoute requiredModules={['health_score']}>
+                  <HealthScore />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="csat" element={
+                <ProtectedRoute requiredModules={['csat']}>
+                  <CSAT />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="ml/churn" element={
+                <ProtectedRoute requiredModules={['ml_churn']}>
+                  <MLChurn />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="usuarios" element={
+                <ProtectedRoute requiredRoles={['admin']}>
+                  <Usuarios />
+                </ProtectedRoute>
+              } />
             </Route>
           </Routes>
         </Router>

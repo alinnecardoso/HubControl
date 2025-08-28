@@ -14,6 +14,7 @@ import {
   Progress,
   Statistic,
   message,
+  Spin,
 } from 'antd';
 import {
   RobotOutlined,
@@ -26,72 +27,111 @@ import {
   FallOutlined,
 } from '@ant-design/icons';
 // Local Component Imports
-import { ChurnPredictionForm } from './components/ChurnPredictionForm.tsx';
-import { ChurnInsights as ChurnInsightsPanel } from './components/ChurnInsights.tsx';
-import ModelTraining from './components/ModelTraining.tsx';
-import ChurnRiskAnalysis from './components/ChurnRiskAnalysis.tsx';
+import { ChurnPredictionForm } from './components/ChurnPredictionForm';
+import { ChurnInsights as ChurnInsightsPanel } from './components/ChurnInsights';
+import ModelTraining from './components/ModelTraining';
+import ChurnRiskAnalysis from './components/ChurnRiskAnalysis';
+
+// API Service
+import { 
+  mlChurnApi, 
+  type ChurnInsights as ChurnInsightsData,
+  type ChurnPredictionResponse,
+  type TrainingStatus 
+} from '../../services/mlApi';
 
 const { Title, Text } = Typography;
 
-interface ChurnPrediction {
-  cliente_id: string;
-  risk_level: 'baixo' | 'medio' | 'alto' | 'critico';
-  risk_score: number; // 0..1
-  predictions: Record<string, number>;
-  features_importance: Record<string, number>;
-  recommendations: string[];
+interface ChurnPrediction extends ChurnPredictionResponse {
   timestamp: string; // ISO
-}
-
-// Renomeado para evitar conflito com o componente ChurnInsights
-interface ChurnInsightsData {
-  total_clientes: number;
-  clientes_churn: number;
-  clientes_ativos: number;
-  taxa_churn_atual: number;
-  clientes_risco_alto: number;
-  clientes_risco_medio: number;
-  clientes_risco_baixo: number;
 }
 
 const MLChurn: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [isTrained, setIsTrained] = useState(false);
   const [trainingStatus, setTrainingStatus] = useState<'idle' | 'training' | 'completed'>('idle');
   const [predictions, setPredictions] = useState<ChurnPrediction[]>([]);
   const [insights, setInsights] = useState<ChurnInsightsData | null>(null);
 
+  // Carrega status inicial dos modelos
   useEffect(() => {
-    // Simula checagem inicial do status do modelo
-    const t = setTimeout(() => {
-      setIsTrained(true);
-      setTrainingStatus('completed');
-    }, 1000);
-    return () => clearTimeout(t);
+    const loadInitialData = async () => {
+      try {
+        setInitialLoading(true);
+        
+        // Verifica status do treinamento
+        const status = await mlChurnApi.getTrainingStatus();
+        setIsTrained(status.is_trained);
+        setTrainingStatus(status.status === 'trained' ? 'completed' : 'idle');
+        
+        // Se treinado, carrega insights
+        if (status.is_trained) {
+          try {
+            const insightsData = await mlChurnApi.getChurnInsights();
+            setInsights(insightsData);
+          } catch (error) {
+            console.warn('Erro ao carregar insights:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar status inicial:', error);
+        message.error('Erro ao conectar com o serviço de ML');
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadInitialData();
   }, []);
 
   const handleTrainModels = async () => {
     setLoading(true);
     setTrainingStatus('training');
     try {
-      // Simulação de treino
-      await new Promise((r) => setTimeout(r, 2000));
-      setTrainingStatus('completed');
-      setIsTrained(true);
-      message.success('Modelos treinados com sucesso!');
-      // Simula insights
-      setInsights({
-        total_clientes: 1250,
-        clientes_churn: 87,
-        clientes_ativos: 1163,
-        taxa_churn_atual: 6.96,
-        clientes_risco_alto: 45,
-        clientes_risco_medio: 123,
-        clientes_risco_baixo: 995,
-      });
-    } catch {
+      const response = await mlChurnApi.trainModels({ force_retrain: true });
+      
+      if (response.status === 'training') {
+        message.info(response.message);
+        
+        // Polling para verificar quando o treinamento termina
+        const pollTrainingStatus = async () => {
+          try {
+            const status = await mlChurnApi.getTrainingStatus();
+            
+            if (status.is_trained) {
+              setTrainingStatus('completed');
+              setIsTrained(true);
+              message.success('Modelos treinados com sucesso!');
+              
+              // Carrega insights atualizados
+              const insightsData = await mlChurnApi.getChurnInsights();
+              setInsights(insightsData);
+              setLoading(false);
+            } else {
+              // Continua polling
+              setTimeout(pollTrainingStatus, 5000);
+            }
+          } catch (error) {
+            console.error('Erro no polling:', error);
+            setTrainingStatus('idle');
+            setLoading(false);
+            message.error('Erro ao verificar status do treinamento');
+          }
+        };
+        
+        // Inicia polling após 5 segundos
+        setTimeout(pollTrainingStatus, 5000);
+      } else if (response.status === 'trained') {
+        setTrainingStatus('completed');
+        setIsTrained(true);
+        message.success('Modelos já estão treinados!');
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Erro ao treinar modelos:', error);
+      setTrainingStatus('idle');
       message.error('Erro ao treinar modelos');
-    } finally {
       setLoading(false);
     }
   };
@@ -99,37 +139,18 @@ const MLChurn: React.FC = () => {
   const handlePrediction = async (clienteId: string) => {
     setLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 800));
-      const now = new Date().toISOString();
+      const predictionResponse = await mlChurnApi.predictChurn({ cliente_id: clienteId });
+      
       const newPrediction: ChurnPrediction = {
-        cliente_id: clienteId,
-        risk_level: Math.random() > 0.7 ? 'alto' : Math.random() > 0.4 ? 'medio' : 'baixo',
-        risk_score: Math.random(),
-        predictions: {
-          random_forest: Math.random(),
-          xgboost: Math.random(),
-          lightgbm: Math.random(),
-          neural_network: Math.random(),
-          ensemble: Math.random(),
-        },
-        features_importance: {
-          health_score_atual: Math.random(),
-          dias_vencimento_proximo: Math.random(),
-          csat_medio: Math.random(),
-          dias_ultima_interacao: Math.random(),
-          ltv_valor: Math.random(),
-        },
-        recommendations: [
-          'Monitorar Health Score',
-          'Verificar renovação de contrato',
-          'Acompanhar satisfação do cliente',
-        ],
-        timestamp: now,
+        ...predictionResponse,
+        timestamp: new Date().toISOString(),
       };
+      
       setPredictions((prev) => [newPrediction, ...prev]);
       message.success('Previsão realizada com sucesso!');
-    } catch {
-      message.error('Erro ao fazer previsão');
+    } catch (error) {
+      console.error('Erro ao fazer previsão:', error);
+      message.error('Erro ao fazer previsão. Verifique se o cliente existe e se os modelos estão treinados.');
     } finally {
       setLoading(false);
     }
@@ -203,6 +224,23 @@ const MLChurn: React.FC = () => {
       render: (ts: string) => new Date(ts).toLocaleDateString('pt-BR'),
     },
   ];
+
+  // Loading inicial
+  if (initialLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '60vh',
+        flexDirection: 'column',
+        gap: 16
+      }}>
+        <Spin size="large" />
+        <Text type="secondary">Carregando sistema de Machine Learning...</Text>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -324,7 +362,7 @@ const MLChurn: React.FC = () => {
             children: (
               <>
                 <Card
-                  bodyStyle={{ background: '#141414', borderRadius: 20, padding: 32 }}
+                  styles={{ body: { background: '#141414', borderRadius: 20, padding: 32 } }}
                   style={{ boxShadow: '0 4px 24px #00000033', border: 'none', marginBottom: 16 }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>

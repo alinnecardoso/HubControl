@@ -1,9 +1,20 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+
+// Slice temporário para evitar erro do Redux
+const appSlice = createSlice({
+  name: 'app',
+  initialState: { initialized: true },
+  reducers: {
+    setInitialized: (state, action) => {
+      state.initialized = action.payload;
+    },
+  },
+});
 
 // Configuração básica do store
 export const store = configureStore({
   reducer: {
-    // Reducers serão adicionados aqui
+    app: appSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

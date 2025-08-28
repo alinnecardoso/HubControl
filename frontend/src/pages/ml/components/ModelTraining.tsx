@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Typography, Spin, Space, Button } from 'antd';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface ModelTrainingProps {
   status: 'idle' | 'training' | 'completed';

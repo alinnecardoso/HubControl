@@ -4,7 +4,6 @@ import {
   Form,
   Input,
   Button,
-  Space,
   Typography,
   Alert,
   Divider,
@@ -15,6 +14,11 @@ import {
   Tag,
   List,
 } from 'antd';
+import { 
+  RiskScoreGauge, 
+  ModelPredictionsChart, 
+  FeatureImportanceChart 
+} from '../../../components/charts/ChurnCharts';
 import {
   SearchOutlined,
   RobotOutlined,
@@ -23,7 +27,7 @@ import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface ChurnPredictionFormProps {
   onPrediction: (clienteId: string) => Promise<void>;
@@ -152,26 +156,16 @@ export const ChurnPredictionForm: React.FC<ChurnPredictionFormProps> = ({
           title="Resultado da Análise" 
           style={{ marginTop: 16 }}
           extra={
-            <Tag color={getRiskLevelColor(predictionResult.risk_level)} size="large">
+            <Tag color={getRiskLevelColor(predictionResult.risk_level)} style={{ fontSize: '14px', padding: '4px 8px' }}>
               {predictionResult.risk_level.toUpperCase()}
             </Tag>
           }
         >
           <Row gutter={[24, 16]}>
             <Col span={8}>
-              <Statistic
-                title="Score de Risco"
-                value={Math.round(predictionResult.risk_score * 100)}
-                suffix="%"
-                valueStyle={{ 
-                  color: predictionResult.risk_score > 0.7 ? '#ff4d4f' : 
-                         predictionResult.risk_score > 0.4 ? '#faad14' : '#52c41a' 
-                }}
-              />
-              <Progress
-                percent={Math.round(predictionResult.risk_score * 100)}
-                status={predictionResult.risk_score > 0.7 ? 'exception' : 'normal'}
-                style={{ marginTop: 8 }}
+              <RiskScoreGauge 
+                score={predictionResult.risk_score} 
+                level={predictionResult.risk_level} 
               />
             </Col>
             
@@ -195,43 +189,14 @@ export const ChurnPredictionForm: React.FC<ChurnPredictionFormProps> = ({
 
           <Divider />
 
-          {/* Previsões dos Modelos Individuais */}
-          <Title level={5}>Previsões por Modelo</Title>
+          {/* Gráficos Interativos */}
           <Row gutter={[16, 16]}>
-            {Object.entries(predictionResult.predictions).map(([model, score]) => (
-              <Col span={4} key={model}>
-                <Card size="small">
-                  <Statistic
-                    title={model.replace('_', ' ').toUpperCase()}
-                    value={Math.round(Number(score) * 100)}
-                    suffix="%"
-                    valueStyle={{ fontSize: '16px' }}
-                  />
-                </Card>
-              </Col>
-            ))}
-          </Row>
-
-          <Divider />
-
-          {/* Importância das Features */}
-          <Title level={5}>Fatores de Influência</Title>
-          <Row gutter={[16, 16]}>
-            {Object.entries(predictionResult.features_importance)
-              .sort(([,a], [,b]) => Number(b) - Number(a))
-              .slice(0, 5)
-              .map(([feature, importance]) => (
-                <Col span={8} key={feature}>
-                  <Card size="small">
-                    <Statistic
-                      title={feature.replace(/_/g, ' ').toUpperCase()}
-                      value={Math.round(Number(importance) * 100)}
-                      suffix="%"
-                      valueStyle={{ fontSize: '14px' }}
-                    />
-                  </Card>
-                </Col>
-              ))}
+            <Col span={12}>
+              <ModelPredictionsChart data={predictionResult.predictions} />
+            </Col>
+            <Col span={12}>
+              <FeatureImportanceChart data={predictionResult.features_importance} />
+            </Col>
           </Row>
 
           <Divider />
@@ -245,7 +210,7 @@ export const ChurnPredictionForm: React.FC<ChurnPredictionFormProps> = ({
                 <List.Item.Meta
                   avatar={<AlertOutlined style={{ color: '#1890ff' }} />}
                   title={`Ação ${index + 1}`}
-                  description={item}
+                  description={String(item)}
                 />
               </List.Item>
             )}

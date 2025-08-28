@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Layout,
@@ -8,7 +8,8 @@ import {
   Dropdown,
   Badge,
   Space,
-  theme,
+  Tag,
+  message,
 } from 'antd';
 import {
   MenuFoldOutlined,
@@ -25,63 +26,124 @@ import {
   LogoutOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
+import { authService, User } from '../services/authService';
 import logo from '../assets/logo-01.png';
 
 const { Header, Sider, Content } = Layout;
 
 const MainLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
 
-  // Menu items
-  const menuItems = [
-    {
-      key: '/',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-    },
-    {
-      key: '/clientes',
-      icon: <UserOutlined />,
-      label: 'Clientes',
-    },
-    {
-      key: '/vendas',
-      icon: <ShoppingCartOutlined />,
-      label: 'Vendas',
-    },
-    {
-      key: '/contratos',
-      icon: <FileTextOutlined />,
-      label: 'Contratos',
-    },
-    {
-      key: '/health-score',
-      icon: <HeartOutlined />,
-      label: 'Health Score',
-    },
-    {
-      key: '/csat',
-      icon: <SmileOutlined />,
-      label: 'CSAT',
-    },
-    {
-      key: '/ml/churn',
-      icon: <RobotOutlined />,
-      label: 'ML - Churn',
-    },
-    {
-      key: '/usuarios',
-      icon: <TeamOutlined />,
-      label: 'Usuários',
-    },
-  ];
+  useEffect(() => {
+    // Verificar autenticação e buscar dados do usuário
+    const checkAuth = async () => {
+      console.log('Verificando autenticação...');
+      console.log('Token existe:', authService.isAuthenticated());
+      
+      if (!authService.isAuthenticated()) {
+        console.log('Usuário não autenticado, redirecionando para login');
+        navigate('/auth/login');
+        return;
+      }
 
-  // User menu para Dropdown (Ant Design v5)
+      try {
+        // Primeiro tentar obter usuário do localStorage
+        const cachedUser = authService.getCurrentUser();
+        console.log('Usuário no cache:', cachedUser);
+        
+        if (cachedUser) {
+          setCurrentUser(cachedUser);
+        } else {
+          // Se não encontrar no cache, tentar buscar do servidor
+          const user = await authService.getUserInfo();
+          console.log('Usuário do servidor:', user);
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados do usuário:', error);
+        message.error('Sessão expirada, faça login novamente');
+        authService.signOut();
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  // Filtrar itens de menu baseado nas permissões do usuário
+  const getFilteredMenuItems = () => {
+    const allItems = [
+      {
+        key: '/',
+        icon: <DashboardOutlined />,
+        label: 'Dashboard',
+        module: 'dashboard',
+      },
+      {
+        key: '/clientes',
+        icon: <UserOutlined />,
+        label: 'Clientes',
+        module: 'clientes',
+      },
+      {
+        key: '/vendas',
+        icon: <ShoppingCartOutlined />,
+        label: 'Vendas',
+        module: 'vendas',
+      },
+      {
+        key: '/contratos',
+        icon: <FileTextOutlined />,
+        label: 'Contratos',
+        module: 'contratos',
+      },
+      {
+        key: '/health-score',
+        icon: <HeartOutlined />,
+        label: 'Health Score',
+        module: 'health_score',
+      },
+      {
+        key: '/csat',
+        icon: <SmileOutlined />,
+        label: 'CSAT',
+        module: 'csat',
+      },
+      {
+        key: '/ml/churn',
+        icon: <RobotOutlined />,
+        label: 'ML - Churn',
+        module: 'ml_churn',
+      },
+      {
+        key: '/usuarios',
+        icon: <TeamOutlined />,
+        label: 'Usuários',
+        module: 'usuarios',
+        adminOnly: true,
+      },
+    ];
+
+    if (!currentUser) return [];
+
+    return allItems.filter(item => {
+      if (item.adminOnly && !authService.isAdmin()) {
+        return false;
+      }
+      if (item.module && !authService.hasModuleAccess(item.module)) {
+        return false;
+      }
+      return true;
+    }).map(item => {
+      // Remove custom properties before passing to Ant Design Menu
+      const { adminOnly, module, ...menuItem } = item;
+      return menuItem;
+    });
+  };
+
+  // Menu do usuário
   const userMenuItems = [
     {
       key: 'profile',
@@ -96,16 +158,54 @@ const MainLayout: React.FC = () => {
       onClick: () => navigate('/settings'),
     },
     {
+      type: 'divider' as const,
+    },
+    {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: 'Sair',
-      onClick: () => navigate('/auth/login'),
+      onClick: () => handleLogout(),
     },
   ];
+
+  const handleLogout = () => {
+    message.success('Até logo!');
+    authService.signOut();
+  };
 
   const handleMenuClick = ({ key }: { key: string }) => {
     navigate(key);
   };
+
+  // Função para obter cor do papel
+  const getRoleColor = (role: string) => {
+    const colors: { [key: string]: string } = {
+      'admin': 'red',
+      'diretoria': 'purple',
+      'cs_cx': 'blue',
+      'financeiro': 'green',
+      'vendas': 'orange',
+      'dataops': 'cyan'
+    };
+    return colors[role] || 'default';
+  };
+
+  // Função para obter nome amigável do papel
+  const getRoleName = (role: string) => {
+    const names: { [key: string]: string } = {
+      'admin': 'Administrador',
+      'diretoria': 'Diretoria',
+      'cs_cx': 'CS/CX',
+      'financeiro': 'Financeiro',
+      'vendas': 'Vendas',
+      'dataops': 'DataOps'
+    };
+    return names[role] || role;
+  };
+
+  if (!currentUser) {
+    return null; // Ou um loading spinner
+  }
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#0a0a0a' }}>
@@ -140,7 +240,7 @@ const MainLayout: React.FC = () => {
           theme="dark"
           mode="inline"
           selectedKeys={[location.pathname]}
-          items={menuItems}
+          items={getFilteredMenuItems()}
           onClick={handleMenuClick}
           style={{
             background: 'transparent',
@@ -187,7 +287,9 @@ const MainLayout: React.FC = () => {
                 items: userMenuItems,
                 onClick: ({ key }) => {
                   const item = userMenuItems.find(i => i.key === key);
-                  if (item && item.onClick) item.onClick();
+                  if (item && 'onClick' in item && item.onClick) {
+                    item.onClick();
+                  }
                 },
               }}
               placement="bottomRight"
@@ -198,7 +300,17 @@ const MainLayout: React.FC = () => {
                   icon={<UserOutlined />}
                   style={{ backgroundColor: '#F22987', color: 'white', boxShadow: '0 2px 8px #0004' }}
                 />
-                <span style={{ color: '#E6E8EA', fontWeight: 500 }}>Admin</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <span style={{ color: '#E6E8EA', fontWeight: 500 }}>
+                    {currentUser.full_name}
+                  </span>
+                  <Tag 
+                    color={getRoleColor(currentUser.role)} 
+                    style={{ margin: 0, fontSize: '10px' }}
+                  >
+                    {getRoleName(currentUser.role)}
+                  </Tag>
+                </div>
               </Space>
             </Dropdown>
           </Space>
