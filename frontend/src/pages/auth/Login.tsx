@@ -236,7 +236,7 @@ const Login: React.FC = () => {
                 boxShadow: '0 4px 15px rgba(242, 41, 135, 0.4)'
               }}
             >
-              {loading ? 'Entrando...' : 'Entrar no Sistema'}
+              {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </Form.Item>
         </Form>
