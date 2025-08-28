@@ -1,9 +1,12 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
-import { Provider, useSelector } from 'react-redux';
+import { Provider } from 'react-redux';
 import { store } from './store/index.ts';
 import ptBR from 'antd/locale/pt_BR';
+
+// Styles
+import './styles/global.css';
 
 // Layouts
 import MainLayout from './layouts/MainLayout.tsx';
@@ -22,10 +25,10 @@ import Usuarios from './pages/usuarios/Usuarios.tsx';
 
 // Placeholder functions for role checking (will be replaced with actual logic)
 const isAssessor = (): boolean => {
-  // Replace with actual logic to check if the user has the 'assessor' role
   return false; // Default to false for now
 };
 
+// Replace with actual logic to check if the user has the 'assessor' role
 const isStaff = (): boolean => {
   // Replace with actual logic to check if the user has a staff role ('cs', 'diretoria', 'admin', 'financeiro')
   return false; // Default to false for now
@@ -33,8 +36,6 @@ const isStaff = (): boolean => {
 
 const Formularios = () => <div>Formularios Page Placeholder</div>; // Temporary placeholder
 
-// Styles
-import './styles/global.css';
 
 const App: React.FC = () => {
   return (

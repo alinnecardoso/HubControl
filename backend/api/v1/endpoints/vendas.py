@@ -7,11 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
 
-from database.connection import get_db
-from models.venda import Venda
-from models.vendedor import Vendedor
-from models.cliente import Cliente
-from schemas.venda import (
+from ....database.connection import get_db
+from ....models.venda import Venda
+from ....models.vendedor import Vendedor
+from ....models.cliente import Cliente
+from ....schemas.venda import (
     VendaCreate,
     VendaUpdate,
     VendaResponse,
