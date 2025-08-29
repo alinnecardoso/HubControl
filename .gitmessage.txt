@@ -1,0 +1,17 @@
+feat(escopo): título conciso no imperativo
+
+Contexto:
+- O que mudou e por quê?
+- Alternativas consideradas?
+
+Detalhes técnicos:
+- Principais decisões/trocas
+- Impactos colaterais
+
+Refs: #
+
+# Dicas:
+# - Primeira linha até ~72 chars, sem ponto final
+# - Linha em branco antes do corpo
+# - Use BREAKING CHANGE: no corpo se houver quebra
+

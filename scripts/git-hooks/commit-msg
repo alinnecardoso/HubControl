@@ -1,0 +1,43 @@
+#!/bin/sh
+# Validador simples de Conventional Commits para a primeira linha do commit
+
+MSG_FILE="$1"
+if [ ! -f "$MSG_FILE" ]; then
+  echo "commit-msg: arquivo de mensagem não encontrado" >&2
+  exit 1
+fi
+
+# Permite commits de merge/revert sem validação de formato
+if grep -Ei '^(Merge|Revert)' "$MSG_FILE" >/dev/null 2>&1; then
+  exit 0
+fi
+
+FIRST_LINE=$(head -n1 "$MSG_FILE")
+
+# Padrão: tipo(escopo)?: descrição (até 100 chars)
+PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+\))?(!)?: .{1,100}$'
+
+printf "%s" "$FIRST_LINE" | grep -Eq "$PATTERN"
+VALID=$?
+
+if [ $VALID -ne 0 ]; then
+  echo "✖ Mensagem de commit inválida:" >&2
+  echo "  $FIRST_LINE" >&2
+  echo >&2
+  echo "Formato esperado:" >&2
+  echo "  tipo(escopo)?: descrição curta" >&2
+  echo "Tipos válidos: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert" >&2
+  echo "Exemplos:" >&2
+  echo "  feat(frontend/auth): adiciona fluxo de login" >&2
+  echo "  fix(backend/api): corrige 500 em /auth/me" >&2
+  exit 1
+fi
+
+# Opcional: recomenda linha em branco antes do corpo (mas não falha)
+SECOND_LINE=$(sed -n '2p' "$MSG_FILE")
+if [ -n "$SECOND_LINE" ] && [ "$SECOND_LINE" != "" ]; then
+  echo "⚠ Recomenda-se uma linha em branco após o assunto do commit." >&2
+fi
+
+exit 0
+
