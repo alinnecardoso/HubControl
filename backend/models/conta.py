@@ -1,7 +1,7 @@
 """
 Modelo de conta para contas adicionais dos clientes
 """
-from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy import Column, String, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin, SoftDeleteMixin
 
@@ -10,6 +10,9 @@ class Conta(Base, TimestampMixin, SoftDeleteMixin):
     """Modelo de conta para contas adicionais dos clientes"""
     
     __tablename__ = "conta"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
     
     # Campos de identificação
     cliente_id = Column(ForeignKey("cliente.id"), nullable=False, index=True)

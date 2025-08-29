@@ -11,6 +11,9 @@ class Renovacao(Base, TimestampMixin):
     
     __tablename__ = "renovacao"
     
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
+    
     # Campos de identificação
     contrato_id = Column(ForeignKey("contrato.id"), nullable=False, index=True)
     tipo = Column(String(50), nullable=False, index=True)

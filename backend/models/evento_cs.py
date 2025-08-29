@@ -1,7 +1,7 @@
 """
 Modelo de evento CS para gestão de interações
 """
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Index
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Index, Integer
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
@@ -10,6 +10,9 @@ class EventoCS(Base, TimestampMixin):
     """Modelo de evento CS para gestão de interações"""
     
     __tablename__ = "evento_cs"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
     
     # Campos de identificação
     cliente_id = Column(ForeignKey("cliente.id"), nullable=False, index=True)

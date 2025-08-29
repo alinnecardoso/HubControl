@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     
     # Database (Supabase)
     DATABASE_URL: str = Field(
-        default="postgresql://postgres:himmelcorp@123@db.auhkbtxjoqvahiajopop.supabase.co:5432/postgres",
+        default="postgresql://postgres:himmelcorp123@db.auhkbtxjoqvahiajopop.supabase.co:5432/postgres",
         description="URL de conexão com o banco Supabase"
     )
     

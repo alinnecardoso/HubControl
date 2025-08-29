@@ -12,6 +12,9 @@ class Contrato(Base, TimestampMixin):
     
     __tablename__ = "contrato"
     
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
+    
     # Campos de identificação
     cliente_id = Column(ForeignKey("cliente.id"), nullable=False, index=True)
     conta_id = Column(ForeignKey("conta.id"), nullable=True, index=True)
@@ -29,8 +32,7 @@ class Contrato(Base, TimestampMixin):
     ciclo_atual = Column(Integer, default=1, nullable=False)
     auto_renovacao = Column(Boolean, default=False, nullable=False)
     
-    # Campo calculado
-    dias_a_vencer = Column(Integer, Computed("data_fim - CURRENT_DATE"), index=True)
+    # Campo calculado (removido computed column por incompatibilidade)
     
     # Relacionamentos
     cliente = relationship("Cliente", back_populates="contratos")

@@ -1,7 +1,7 @@
 """
 Modelo de assessor/consultor do sistema
 """
-from sqlalchemy import Column, String, Boolean, ForeignKey
+from sqlalchemy import Column, String, Boolean, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin, SoftDeleteMixin
 
@@ -10,6 +10,9 @@ class Assessor(Base, TimestampMixin, SoftDeleteMixin):
     """Modelo de assessor/consultor para o módulo de CS"""
     
     __tablename__ = "assessor"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
     
     # Campos de identificação
     usuario_id = Column(ForeignKey("usuario.id"), nullable=True, unique=True)

@@ -1,7 +1,7 @@
 """
 Modelo de equipe do sistema
 """
-from sqlalchemy import Column, String, Boolean
+from sqlalchemy import Column, String, Boolean, Integer
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin, SoftDeleteMixin
 
@@ -10,6 +10,9 @@ class Equipe(Base, TimestampMixin, SoftDeleteMixin):
     """Modelo de equipe para organização dos usuários"""
     
     __tablename__ = "equipe"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
     
     # Campos básicos
     nome = Column(String(255), nullable=False, index=True)

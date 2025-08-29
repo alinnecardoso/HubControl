@@ -11,6 +11,9 @@ class HistoricoCicloContrato(Base, TimestampMixin):
     
     __tablename__ = "historico_ciclo_contrato"
     
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
+    
     # Campos de identificação
     contrato_id = Column(ForeignKey("contrato.id"), nullable=False, index=True)
     
@@ -25,7 +28,7 @@ class HistoricoCicloContrato(Base, TimestampMixin):
     contrato = relationship("Contrato", back_populates="historico_ciclos")
     
     def __repr__(self):
-        return f"<HistoricoCicloContrato(id={self.id}, contrato_id={self.cliente_id}, ciclo={self.ciclo})>"
+        return f"<HistoricoCicloContrato(id={self.id}, contrato_id={self.contrato_id}, ciclo={self.ciclo})>"
     
     @property
     def valor_total_ciclo(self) -> float:

@@ -11,6 +11,9 @@ class Cliente(Base, TimestampMixin):
     
     __tablename__ = "cliente"
     
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
+    
     # Campos de identificação
     cust_id_externo = Column(String(100), unique=True, index=True)
     nome_principal = Column(String(255), nullable=False, index=True)

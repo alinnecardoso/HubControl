@@ -11,6 +11,9 @@ class CSATResposta(Base, TimestampMixin):
     
     __tablename__ = "csat_resposta"
     
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
+    
     # Campos de identificação
     id_cliente = Column(ForeignKey("cliente.id"), nullable=False, index=True)
     id_consultor = Column(ForeignKey("assessor.id"), nullable=False, index=True)

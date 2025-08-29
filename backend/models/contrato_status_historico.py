@@ -1,7 +1,7 @@
 """
 Modelo de histórico de status de contrato
 """
-from sqlalchemy import Column, String, Text, ForeignKey
+from sqlalchemy import Column, String, Text, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
@@ -10,6 +10,9 @@ class ContratoStatusHistorico(Base, TimestampMixin):
     """Modelo de histórico de status de contrato"""
     
     __tablename__ = "contrato_status_historico"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
     
     # Campos de identificação
     contrato_id = Column(ForeignKey("contrato.id"), nullable=False, index=True)

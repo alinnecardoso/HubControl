@@ -3,7 +3,7 @@
  */
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'http://localhost:8005/api/v1';
 
 // Configurar interceptor para incluir token automaticamente
 axios.defaults.baseURL = API_BASE_URL;
@@ -92,7 +92,16 @@ class AuthService {
    */
   async signIn(credentials: SignInData): Promise<AuthResponse> {
     try {
-      const response = await axios.post('/auth/signin', credentials);
+      // Fazer requisição simples para evitar preflight CORS
+      const response = await axios({
+        method: 'post',
+        url: '/auth/signin',
+        data: credentials,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: false  // Desabilitar cookies para evitar preflight
+      });
       const authData: AuthResponse = response.data;
       
       // Salvar token e dados do usuário

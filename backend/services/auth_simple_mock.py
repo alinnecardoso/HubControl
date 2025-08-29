@@ -178,12 +178,19 @@ class MockAuthService:
         """Obter permissões baseadas no papel"""
         permissions_map = {
             UserRole.ADMIN: {
-                "modules": ["dashboard", "clientes", "vendas", "contratos", "health_score", "csat", "ml_churn", "usuarios"],
+                "modules": [
+                    "dashboard", "clientes", "vendas", "vendas_dashboard", "vendas_registro", 
+                    "vendas_vendedores", "vendas_dados", "contratos", "health_score", "csat", 
+                    "ml_churn", "usuarios"
+                ],
                 "actions": ["create", "read", "update", "delete", "manage_users"],
                 "data_access": "all"
             },
             UserRole.DIRETORIA: {
-                "modules": ["dashboard", "clientes", "vendas", "contratos", "health_score", "csat", "ml_churn"],
+                "modules": [
+                    "dashboard", "clientes", "vendas", "vendas_dashboard", "vendas_registro", 
+                    "vendas_vendedores", "vendas_dados", "contratos", "health_score", "csat", "ml_churn"
+                ],
                 "actions": ["create", "read", "update", "delete"],
                 "data_access": "all"
             },
@@ -198,7 +205,10 @@ class MockAuthService:
                 "data_access": "department"
             },
             UserRole.VENDAS: {
-                "modules": ["dashboard", "clientes", "vendas"],
+                "modules": [
+                    "dashboard", "vendas_dashboard", "vendas_registro", 
+                    "vendas_vendedores", "vendas_dados"
+                ],
                 "actions": ["create", "read", "update"],
                 "data_access": "department"
             },

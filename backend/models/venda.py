@@ -12,6 +12,9 @@ class Venda(Base, TimestampMixin):
     
     __tablename__ = "venda"
     
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
+    
     # Campos de identificação
     data = Column(Date, nullable=False, index=True)
     loja = Column(String(255), nullable=False, index=True)

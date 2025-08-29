@@ -1,7 +1,7 @@
 """
 Modelo de vendedor do sistema
 """
-from sqlalchemy import Column, String, Boolean, ForeignKey, Index
+from sqlalchemy import Column, String, Boolean, ForeignKey, Index, Integer
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin, SoftDeleteMixin
 
@@ -10,6 +10,9 @@ class Vendedor(Base, TimestampMixin, SoftDeleteMixin):
     """Modelo de vendedor para o módulo de vendas"""
     
     __tablename__ = "vendedor"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
     
     # Campos de identificação
     usuario_id = Column(ForeignKey("usuario.id"), nullable=True, unique=True)
@@ -33,7 +36,7 @@ class Vendedor(Base, TimestampMixin, SoftDeleteMixin):
     @property
     def total_vendas(self) -> int:
         """Retorna o total de vendas do vendedor"""
-        return len([v for v in self.vendas if v.ativo])
+        return len(self.vendas)
     
     @property
     def total_vendas_mes_atual(self) -> int:
@@ -48,7 +51,7 @@ class Vendedor(Base, TimestampMixin, SoftDeleteMixin):
     @property
     def valor_total_vendas(self) -> float:
         """Retorna o valor total das vendas"""
-        return sum(v.valor_mensal for v in self.vendas if v.ativo)
+        return sum(v.valor_mensal for v in self.vendas)
     
     @property
     def valor_total_vendas_mes_atual(self) -> float:
@@ -63,7 +66,7 @@ class Vendedor(Base, TimestampMixin, SoftDeleteMixin):
     @property
     def valor_total_bonificacoes(self) -> float:
         """Retorna o valor total das bonificações"""
-        return sum(v.valor_bonificacao for v in self.vendas if v.ativo)
+        return sum(v.valor_bonificacao for v in self.vendas)
     
     @property
     def valor_total_bonificacoes_mes_atual(self) -> float:
@@ -78,20 +81,18 @@ class Vendedor(Base, TimestampMixin, SoftDeleteMixin):
     @property
     def media_valor_venda(self) -> float:
         """Retorna a média de valor por venda"""
-        vendas_ativas = [v for v in self.vendas if v.ativo]
-        if not vendas_ativas:
+        if not self.vendas:
             return 0.0
-        return self.valor_total_vendas / len(vendas_ativas)
+        return self.valor_total_vendas / len(self.vendas)
     
     @property
     def produtos_vendidos(self) -> list:
         """Retorna lista de produtos vendidos pelo vendedor"""
         produtos = {}
         for venda in self.vendas:
-            if venda.ativo:
-                if venda.produto not in produtos:
-                    produtos[venda.produto] = 0
-                produtos[venda.produto] += 1
+            if venda.produto not in produtos:
+                produtos[venda.produto] = 0
+            produtos[venda.produto] += 1
         
         # Retorna ordenado por quantidade
         return sorted(produtos.items(), key=lambda x: x[1], reverse=True)
@@ -110,7 +111,7 @@ class Vendedor(Base, TimestampMixin, SoftDeleteMixin):
         
         vendas_periodo = [
             v for v in self.vendas 
-            if v.ativo and data_inicio <= v.data <= data_fim
+            if data_inicio <= v.data <= data_fim
         ]
         
         if not vendas_periodo:

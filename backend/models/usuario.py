@@ -1,7 +1,7 @@
 """
 Modelo de usuário do sistema
 """
-from sqlalchemy import Column, String, Boolean, DateTime, func
+from sqlalchemy import Column, String, Boolean, DateTime, func, Integer
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin, SoftDeleteMixin
 
@@ -10,6 +10,9 @@ class Usuario(Base, TimestampMixin, SoftDeleteMixin):
     """Modelo de usuário do sistema"""
     
     __tablename__ = "usuario"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
     
     # Campos básicos
     nome = Column(String(255), nullable=False)

@@ -25,6 +25,10 @@ import {
   BellOutlined,
   LogoutOutlined,
   SettingOutlined,
+  BarChartOutlined,
+  ShoppingOutlined,
+  DatabaseOutlined,
+  PieChartOutlined,
 } from '@ant-design/icons';
 import { authService, User } from '../services/authService';
 import logo from '../assets/logo-01.png';
@@ -74,73 +78,105 @@ const MainLayout: React.FC = () => {
 
   // Filtrar itens de menu baseado nas permissões do usuário
   const getFilteredMenuItems = () => {
-    const allItems = [
+    if (!currentUser) return [];
+
+    const menuItems: any[] = [
+      // Dashboard principal
       {
         key: '/',
         icon: <DashboardOutlined />,
-        label: 'Dashboard',
-        module: 'dashboard',
-      },
-      {
-        key: '/clientes',
-        icon: <UserOutlined />,
-        label: 'Clientes',
-        module: 'clientes',
-      },
-      {
-        key: '/vendas',
-        icon: <ShoppingCartOutlined />,
-        label: 'Vendas',
-        module: 'vendas',
-      },
-      {
-        key: '/contratos',
-        icon: <FileTextOutlined />,
-        label: 'Contratos',
-        module: 'contratos',
-      },
-      {
-        key: '/health-score',
-        icon: <HeartOutlined />,
-        label: 'Health Score',
-        module: 'health_score',
-      },
-      {
-        key: '/csat',
-        icon: <SmileOutlined />,
-        label: 'CSAT',
-        module: 'csat',
-      },
-      {
-        key: '/ml/churn',
-        icon: <RobotOutlined />,
-        label: 'ML - Churn',
-        module: 'ml_churn',
-      },
-      {
-        key: '/usuarios',
-        icon: <TeamOutlined />,
-        label: 'Usuários',
-        module: 'usuarios',
-        adminOnly: true,
+        label: 'Dashboard Geral',
       },
     ];
 
-    if (!currentUser) return [];
+    // Módulo Clientes (acessível a quase todos os setores)
+    if (authService.hasModuleAccess('clientes')) {
+      menuItems.push({
+        key: '/clientes',
+        icon: <UserOutlined />,
+        label: 'Clientes',
+      });
+    }
 
-    return allItems.filter(item => {
-      if (item.adminOnly && !authService.isAdmin()) {
-        return false;
-      }
-      if (item.module && !authService.hasModuleAccess(item.module)) {
-        return false;
-      }
-      return true;
-    }).map(item => {
-      // Remove custom properties before passing to Ant Design Menu
-      const { adminOnly, module, ...menuItem } = item;
-      return menuItem;
-    });
+    // Módulos de Vendas (itens separados no menu principal)
+    if (authService.hasModuleAccess('vendas_dashboard')) {
+      menuItems.push({
+        key: '/vendas/dashboard',
+        icon: <PieChartOutlined />,
+        label: 'Dashboard Vendas',
+      });
+    }
+
+    if (authService.hasModuleAccess('vendas_registro')) {
+      menuItems.push({
+        key: '/vendas/registro',
+        icon: <ShoppingOutlined />,
+        label: 'Registro de Vendas',
+      });
+    }
+
+    if (authService.hasModuleAccess('vendas_vendedores')) {
+      menuItems.push({
+        key: '/vendas/vendedores',
+        icon: <TeamOutlined />,
+        label: 'Gerenciar Vendedores',
+      });
+    }
+
+    if (authService.hasModuleAccess('vendas_dados')) {
+      menuItems.push({
+        key: '/vendas/dados',
+        icon: <DatabaseOutlined />,
+        label: 'Importar/Exportar Dados',
+      });
+    }
+
+    // Módulo Contratos (Financeiro)
+    if (authService.hasModuleAccess('contratos')) {
+      menuItems.push({
+        key: '/contratos',
+        icon: <FileTextOutlined />,
+        label: 'Contratos',
+      });
+    }
+
+    // Módulo Health Score (CS/CX)
+    if (authService.hasModuleAccess('health_score')) {
+      menuItems.push({
+        key: '/health-score',
+        icon: <HeartOutlined />,
+        label: 'Health Score',
+      });
+    }
+
+    // Módulo CSAT (CS/CX)
+    if (authService.hasModuleAccess('csat')) {
+      menuItems.push({
+        key: '/csat',
+        icon: <SmileOutlined />,
+        label: 'CSAT',
+      });
+    }
+
+    // Módulo ML Churn (DataOps)
+    if (authService.hasModuleAccess('ml_churn')) {
+      menuItems.push({
+        key: '/ml/churn',
+        icon: <RobotOutlined />,
+        label: 'Predição de Churn',
+      });
+    }
+
+    // Módulo Usuários (apenas admin)
+    if (authService.hasModuleAccess('usuarios')) {
+      menuItems.push({
+        key: '/usuarios',
+        icon: <SettingOutlined />,
+        label: 'Gerenciar Usuários',
+      });
+    }
+
+    return menuItems;
   };
 
   // Menu do usuário
@@ -208,29 +244,34 @@ const MainLayout: React.FC = () => {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+    <Layout style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <Sider
         trigger={null}
         collapsible
         collapsed={collapsed}
-        style={{ background: '#0D0D0D', borderRight: '1px solid #1A1A1A', boxShadow: '0 2px 8px #0004' }}
+        style={{ 
+          background: 'var(--bg-secondary)', 
+          borderRight: '1px solid var(--border-light)', 
+          boxShadow: 'var(--shadow-small)' 
+        }}
       >
         <div style={{
-          height: 64,
+          height: 72,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'rgba(255,255,255,0.04)',
+          background: 'rgba(255,255,255,0.05)',
           margin: 16,
-          borderRadius: 16,
+          borderRadius: 'var(--radius-large)',
+          transition: 'all 0.3s ease',
         }}>
           <img
             src={logo}
             alt="HubControl"
             style={{
               height: collapsed ? 32 : 40,
-              transition: 'height 0.2s',
-              filter: 'drop-shadow(0 2px 6px #0008)',
+              transition: 'height 0.3s ease',
+              filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))',
               objectFit: 'contain',
               maxWidth: '80%',
             }}
@@ -244,22 +285,24 @@ const MainLayout: React.FC = () => {
           onClick={handleMenuClick}
           style={{
             background: 'transparent',
-            color: '#E6E8EA',
-            fontSize: 16,
-            borderRadius: 16,
+            border: 'none',
+            fontSize: 14,
+            fontWeight: 500,
+            padding: '0 8px',
           }}
         />
       </Sider>
-      <Layout>
+      <Layout style={{ background: 'var(--bg-primary)' }}>
         <Header
           style={{
-            padding: '0 16px',
-            background: '#141414',
+            padding: '0 var(--spacing-lg)',
+            background: 'var(--bg-secondary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            boxShadow: '0 2px 8px #0008',
-            borderBottom: '1px solid #1A1A1A',
+            boxShadow: 'var(--shadow-small)',
+            borderBottom: '1px solid var(--border-light)',
+            height: 72,
           }}
         >
           <Button
@@ -267,19 +310,39 @@ const MainLayout: React.FC = () => {
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
             style={{
-              fontSize: '16px',
-              width: 64,
-              height: 64,
-              color: '#F22987',
+              fontSize: '18px',
+              width: 48,
+              height: 48,
+              color: 'var(--secondary-color)',
+              borderRadius: 'var(--radius-medium)',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(242, 41, 135, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
             }}
           />
           <Space size="large">
-            <Badge count={5} size="small">
+            <Badge count={3} size="small" style={{ backgroundColor: 'var(--warning-color)' }}>
               <Button
                 type="text"
-                icon={<BellOutlined style={{ color: '#6ACED9' }} />}
+                icon={<BellOutlined style={{ color: 'var(--accent-color)', fontSize: '18px' }} />}
                 size="large"
-                style={{ color: '#6ACED9', background: 'transparent' }}
+                style={{ 
+                  color: 'var(--accent-color)', 
+                  background: 'transparent',
+                  borderRadius: 'var(--radius-medium)',
+                  width: 48,
+                  height: 48,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(106, 206, 217, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
               />
             </Badge>
             <Dropdown
@@ -295,18 +358,48 @@ const MainLayout: React.FC = () => {
               placement="bottomRight"
               arrow
             >
-              <Space style={{ cursor: 'pointer' }}>
+              <Space 
+                style={{ 
+                  cursor: 'pointer', 
+                  padding: 'var(--spacing-sm) var(--spacing-md)',
+                  borderRadius: 'var(--radius-medium)',
+                  transition: 'all 0.3s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
                 <Avatar
                   icon={<UserOutlined />}
-                  style={{ backgroundColor: '#F22987', color: 'white', boxShadow: '0 2px 8px #0004' }}
+                  style={{ 
+                    backgroundColor: 'var(--secondary-color)', 
+                    color: 'white', 
+                    boxShadow: 'var(--shadow-small)',
+                    border: '2px solid rgba(255, 255, 255, 0.1)',
+                  }}
+                  size={42}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <span style={{ color: '#E6E8EA', fontWeight: 500 }}>
+                  <span style={{ 
+                    color: 'var(--text-primary)', 
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                  }}>
                     {currentUser.full_name}
                   </span>
                   <Tag 
                     color={getRoleColor(currentUser.role)} 
-                    style={{ margin: 0, fontSize: '10px' }}
+                    style={{ 
+                      margin: '2px 0 0 0', 
+                      fontSize: '11px',
+                      fontWeight: 500,
+                      borderRadius: 'var(--radius-small)',
+                      border: 'none',
+                    }}
                   >
                     {getRoleName(currentUser.role)}
                   </Tag>
@@ -317,13 +410,14 @@ const MainLayout: React.FC = () => {
         </Header>
         <Content
           style={{
-            margin: '24px 16px',
-            padding: 24,
-            minHeight: 280,
-            background: '#141414',
-            borderRadius: 20,
-            color: '#E6E8EA',
-            boxShadow: '0 4px 24px #00000033',
+            margin: 'var(--spacing-lg)',
+            padding: 'var(--spacing-xl)',
+            minHeight: 'calc(100vh - 120px)',
+            background: 'var(--bg-card)',
+            borderRadius: 'var(--radius-xl)',
+            color: 'var(--text-secondary)',
+            boxShadow: 'var(--shadow-medium)',
+            border: '1px solid var(--border-light)',
           }}
         >
           <Outlet />

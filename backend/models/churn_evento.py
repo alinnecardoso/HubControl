@@ -1,7 +1,7 @@
 """
 Modelo de churn evento para análise de perda de clientes
 """
-from sqlalchemy import Column, String, Date, Numeric, Text, ForeignKey, Index
+from sqlalchemy import Column, String, Date, Numeric, Text, ForeignKey, Index, Integer
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
@@ -10,6 +10,9 @@ class ChurnEvento(Base, TimestampMixin):
     """Modelo de churn evento para análise de perda de clientes"""
     
     __tablename__ = "churn_evento"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
     
     # Campos de identificação
     cliente_id = Column(ForeignKey("cliente.id"), nullable=False, index=True)

@@ -1,12 +1,13 @@
 """
 Aplicação simplificada HubControl
 """
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-# Importar rotas de autenticação
+# Importar rotas de autenticação e vendas
 from api.auth_routes import router as auth_router, get_current_user
+from api.sales_routes import router as sales_router
 from services.auth_simple_mock import UserRole
 from middleware.rbac import rbac, data_filter
 
@@ -21,13 +22,13 @@ app = FastAPI(
     description="Sistema integrado de gestão empresarial com módulos de Customer Success e Vendas"
 )
 
-# Middleware de CORS
+# Configurar CORS de forma simples e direta
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3001", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 # Rota de health check
@@ -50,8 +51,9 @@ async def root():
         "docs": "/docs"
     }
 
-# Incluir rotas de autenticação
+# Incluir rotas de autenticação e vendas
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(sales_router, prefix="/api/v1")
 
 # API ML endpoints com autenticação
 @app.get("/api/v1/ml/churn/test")
@@ -77,48 +79,6 @@ async def test_usuarios(current_user: dict = Depends(get_current_user)):
     """Endpoint de teste usuários (apenas admins)"""
     return {"message": "Usuarios endpoint working", "user": current_user["email"]}
 
-@app.get("/api/v1/vendas/test")
-@rbac.require_module_access("vendas")
-async def test_vendas(current_user: dict = Depends(get_current_user)):
-    """Endpoint de teste vendas"""
-    return {"message": "Vendas endpoint working", "user": current_user["email"]}
-
-@app.get("/api/v1/contratos/test")
-@rbac.require_module_access("contratos")
-async def test_contratos(current_user: dict = Depends(get_current_user)):
-    """Endpoint de teste contratos"""
-    return {"message": "Contratos endpoint working", "user": current_user["email"]}
-
-@app.get("/api/v1/health-score/test")
-@rbac.require_module_access("health_score")
-async def test_health_score(current_user: dict = Depends(get_current_user)):
-    """Endpoint de teste health score"""
-    return {"message": "Health Score endpoint working", "user": current_user["email"]}
-
-@app.get("/api/v1/csat/test")
-@rbac.require_module_access("csat")
-async def test_csat(current_user: dict = Depends(get_current_user)):
-    """Endpoint de teste CSAT"""
-    return {"message": "CSAT endpoint working", "user": current_user["email"]}
-
-@app.get("/api/v1/dashboard-cs/test")
-@rbac.require_roles([UserRole.CS_CX, UserRole.ADMIN, UserRole.DIRETORIA])
-async def test_dashboard_cs(current_user: dict = Depends(get_current_user)):
-    """Endpoint de teste dashboard CS"""
-    return {"message": "Dashboard CS endpoint working", "user": current_user["email"]}
-
-@app.get("/api/v1/dashboard-vendas/test")
-@rbac.require_roles([UserRole.VENDAS, UserRole.ADMIN, UserRole.DIRETORIA])
-async def test_dashboard_vendas(current_user: dict = Depends(get_current_user)):
-    """Endpoint de teste dashboard vendas"""
-    return {"message": "Dashboard Vendas endpoint working", "user": current_user["email"]}
-
-@app.get("/api/v1/importacao/test")
-@rbac.require_roles([UserRole.ADMIN, UserRole.DATAOPS])
-async def test_importacao(current_user: dict = Depends(get_current_user)):
-    """Endpoint de teste importação"""
-    return {"message": "Importacao endpoint working", "user": current_user["email"]}
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main_simple:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8002)

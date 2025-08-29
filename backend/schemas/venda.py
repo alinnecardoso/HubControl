@@ -12,16 +12,16 @@ class VendaBase(BaseModel):
     
     data: date = Field(..., description="Data da venda")
     loja: str = Field(..., min_length=1, max_length=255, description="Nome da loja")
-    cliente_id: str = Field(..., description="ID do cliente")
+    cliente_id: int = Field(..., description="ID do cliente")
     produto: str = Field(..., min_length=1, max_length=255, description="Nome do produto/serviço")
-    valor_mensal: Decimal = Field(..., gt=0, description="Valor mensal da venda")
-    vendedor_id: str = Field(..., description="ID do vendedor")
+    valor_mensal: float = Field(..., gt=0, description="Valor mensal da venda")
+    vendedor_id: int = Field(..., description="ID do vendedor")
     contrato_meses: int = Field(..., gt=0, le=120, description="Duração do contrato em meses")
     forma_pagamento: str = Field(..., min_length=1, max_length=100, description="Método de pagamento")
     
     # Campos opcionais
     telefone_cliente: Optional[str] = Field(None, max_length=20, description="Telefone do cliente")
-    percentual_variavel: Optional[Decimal] = Field(None, ge=0, le=100, description="Percentual variável para bonificação")
+    percentual_variavel: Optional[float] = Field(None, ge=0, le=100, description="Percentual variável para bonificação")
     canal_venda: Optional[str] = Field(None, max_length=100, description="Canal de venda")
     descricao: Optional[str] = Field(None, description="Descrição da venda")
     info_adicional: Optional[str] = Field(None, description="Informações adicionais")
@@ -53,14 +53,14 @@ class VendaUpdate(BaseModel):
     
     data: Optional[date] = Field(None, description="Data da venda")
     loja: Optional[str] = Field(None, min_length=1, max_length=255, description="Nome da loja")
-    cliente_id: Optional[str] = Field(None, description="ID do cliente")
+    cliente_id: Optional[int] = Field(None, description="ID do cliente")
     produto: Optional[str] = Field(None, min_length=1, max_length=255, description="Nome do produto/serviço")
-    valor_mensal: Optional[Decimal] = Field(None, gt=0, description="Valor mensal da venda")
-    vendedor_id: Optional[str] = Field(None, description="ID do vendedor")
+    valor_mensal: Optional[float] = Field(None, gt=0, description="Valor mensal da venda")
+    vendedor_id: Optional[int] = Field(None, description="ID do vendedor")
     contrato_meses: Optional[int] = Field(None, gt=0, le=120, description="Duração do contrato em meses")
     forma_pagamento: Optional[str] = Field(None, min_length=1, max_length=100, description="Método de pagamento")
     telefone_cliente: Optional[str] = Field(None, max_length=20, description="Telefone do cliente")
-    percentual_variavel: Optional[Decimal] = Field(None, ge=0, le=100, description="Percentual variável para bonificação")
+    percentual_variavel: Optional[float] = Field(None, ge=0, le=100, description="Percentual variável para bonificação")
     canal_venda: Optional[str] = Field(None, max_length=100, description="Canal de venda")
     descricao: Optional[str] = Field(None, description="Descrição da venda")
     info_adicional: Optional[str] = Field(None, description="Informações adicionais")
@@ -69,7 +69,7 @@ class VendaUpdate(BaseModel):
 class VendaResponse(VendaBase):
     """Schema para resposta de venda"""
     
-    id: str = Field(..., description="ID único da venda")
+    id: int = Field(..., description="ID único da venda")
     data_criacao: date = Field(..., description="Data de criação")
     data_ultima_atualizacao: date = Field(..., description="Data da última atualização")
     
@@ -100,7 +100,7 @@ class VendaListResponse(BaseModel):
 class VendedorMetricsResponse(BaseModel):
     """Schema para métricas de vendedor"""
     
-    vendedor_id: str = Field(..., description="ID do vendedor")
+    vendedor_id: int = Field(..., description="ID do vendedor")
     nome_vendedor: str = Field(..., description="Nome do vendedor")
     periodo: dict = Field(..., description="Período das métricas")
     total_vendas: int = Field(..., description="Total de vendas")
@@ -126,8 +126,8 @@ class VendaFilter(BaseModel):
     
     data_inicio: Optional[date] = Field(None, description="Data de início para filtro")
     data_fim: Optional[date] = Field(None, description="Data de fim para filtro")
-    vendedor_id: Optional[str] = Field(None, description="ID do vendedor para filtro")
-    cliente_id: Optional[str] = Field(None, description="ID do cliente para filtro")
+    vendedor_id: Optional[int] = Field(None, description="ID do vendedor para filtro")
+    cliente_id: Optional[int] = Field(None, description="ID do cliente para filtro")
     loja: Optional[str] = Field(None, description="Nome da loja para filtro")
     produto: Optional[str] = Field(None, description="Nome do produto para filtro")
     skip: int = Field(0, ge=0, description="Número de registros para pular")

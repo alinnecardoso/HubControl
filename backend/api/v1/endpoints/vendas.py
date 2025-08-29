@@ -70,8 +70,8 @@ async def listar_vendas(
     limit: int = Query(100, ge=1, le=1000, description="Número máximo de registros"),
     data_inicio: Optional[date] = Query(None, description="Data de início para filtro"),
     data_fim: Optional[date] = Query(None, description="Data de fim para filtro"),
-    vendedor_id: Optional[str] = Query(None, description="ID do vendedor para filtro"),
-    cliente_id: Optional[str] = Query(None, description="ID do cliente para filtro"),
+    vendedor_id: Optional[int] = Query(None, description="ID do vendedor para filtro"),
+    cliente_id: Optional[int] = Query(None, description="ID do cliente para filtro"),
     loja: Optional[str] = Query(None, description="Nome da loja para filtro"),
     produto: Optional[str] = Query(None, description="Nome do produto para filtro"),
     db: Session = Depends(get_db)
@@ -123,145 +123,6 @@ async def listar_vendas(
         raise HTTPException(status_code=500, detail=f"Erro ao listar vendas: {str(e)}")
 
 
-@router.get("/{venda_id}", response_model=VendaResponse, summary="Obter venda por ID")
-async def obter_venda(
-    venda_id: str,
-    db: Session = Depends(get_db)
-):
-    """
-    Obtém uma venda específica por ID.
-    """
-    try:
-        venda = db.query(Venda).filter(Venda.id == venda_id).first()
-        if not venda:
-            raise HTTPException(status_code=404, detail="Venda não encontrada")
-        
-        return VendaResponse.from_orm(venda)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao obter venda: {str(e)}")
-
-
-@router.put("/{venda_id}", response_model=VendaResponse, summary="Atualizar venda")
-async def atualizar_venda(
-    venda_id: str,
-    venda_update: VendaUpdate,
-    db: Session = Depends(get_db)
-):
-    """
-    Atualiza uma venda existente.
-    """
-    try:
-        db_venda = db.query(Venda).filter(Venda.id == venda_id).first()
-        if not db_venda:
-            raise HTTPException(status_code=404, detail="Venda não encontrada")
-        
-        # Atualiza apenas os campos fornecidos
-        update_data = venda_update.dict(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(db_venda, field, value)
-        
-        db.commit()
-        db.refresh(db_venda)
-        
-        return VendaResponse.from_orm(db_venda)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao atualizar venda: {str(e)}")
-
-
-@router.delete("/{venda_id}", summary="Excluir venda")
-async def excluir_venda(
-    venda_id: str,
-    db: Session = Depends(get_db)
-):
-    """
-    Exclui uma venda (soft delete).
-    """
-    try:
-        db_venda = db.query(Venda).filter(Venda.id == venda_id).first()
-        if not db_venda:
-            raise HTTPException(status_code=404, detail="Venda não encontrada")
-        
-        db_venda.ativo = False
-        db.commit()
-        
-        return {"message": "Venda excluída com sucesso"}
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao excluir venda: {str(e)}")
-
-
-@router.get("/vendedor/{vendedor_id}/metricas", response_model=VendedorMetricsResponse, summary="Métricas do vendedor")
-async def obter_metricas_vendedor(
-    vendedor_id: str,
-    data_inicio: Optional[date] = Query(None, description="Data de início para filtro"),
-    data_fim: Optional[date] = Query(None, description="Data de fim para filtro"),
-    db: Session = Depends(get_db)
-):
-    """
-    Obtém métricas de vendas de um vendedor específico.
-    """
-    try:
-        # Verifica se o vendedor existe
-        vendedor = db.query(Vendedor).filter(Vendedor.id == vendedor_id).first()
-        if not vendedor:
-            raise HTTPException(status_code=404, detail="Vendedor não encontrado")
-        
-        # Query base para vendas do vendedor
-        query = db.query(Venda).filter(Venda.vendedor_id == vendedor_id, Venda.ativo == True)
-        
-        # Aplica filtros de data se fornecidos
-        if data_inicio:
-            query = query.filter(Venda.data >= data_inicio)
-        if data_fim:
-            query = query.filter(Venda.data <= data_fim)
-        
-        vendas = query.all()
-        
-        # Calcula métricas
-        total_vendas = len(vendas)
-        valor_total = sum(v.valor_mensal for v in vendas)
-        valor_bonificacoes = sum(v.valor_bonificacao for v in vendas)
-        media_valor = valor_total / total_vendas if total_vendas > 0 else 0
-        
-        # Produtos mais vendidos
-        produtos = {}
-        for venda in vendas:
-            if venda.produto not in produtos:
-                produtos[venda.produto] = 0
-            produtos[venda.produto] += 1
-        
-        top_produtos = sorted(produtos.items(), key=lambda x: x[1], reverse=True)[:5]
-        
-        return VendedorMetricsResponse(
-            vendedor_id=vendedor_id,
-            nome_vendedor=vendedor.nome,
-            periodo={
-                "data_inicio": data_inicio.isoformat() if data_inicio else None,
-                "data_fim": data_fim.isoformat() if data_fim else None
-            },
-            total_vendas=total_vendas,
-            valor_total=round(valor_total, 2),
-            valor_bonificacoes=round(valor_bonificacoes, 2),
-            media_valor=round(media_valor, 2),
-            top_produtos=top_produtos
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao obter métricas: {str(e)}")
-
-
 @router.get("/metricas/gerais", response_model=VendaMetricsResponse, summary="Métricas gerais de vendas")
 async def obter_metricas_gerais(
     data_inicio: Optional[date] = Query(None, description="Data de início para filtro"),
@@ -273,7 +134,7 @@ async def obter_metricas_gerais(
     """
     try:
         # Query base
-        query = db.query(Venda).filter(Venda.ativo == True)
+        query = db.query(Venda)
         
         # Aplica filtros de data se fornecidos
         if data_inicio:
@@ -285,7 +146,7 @@ async def obter_metricas_gerais(
         
         # Calcula métricas
         total_vendas = len(vendas)
-        valor_total = sum(v.valor_mensal for v in vendas)
+        valor_total = sum(float(v.valor_mensal) for v in vendas)
         media_valor = valor_total / total_vendas if total_vendas > 0 else 0
         
         # Top produtos
@@ -329,4 +190,143 @@ async def obter_metricas_gerais(
         )
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao obter métricas: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Erro ao obter métricas: {str(e)}")
+
+
+@router.get("/{venda_id}", response_model=VendaResponse, summary="Obter venda por ID")
+async def obter_venda(
+    venda_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Obtém uma venda específica por ID.
+    """
+    try:
+        venda = db.query(Venda).filter(Venda.id == venda_id).first()
+        if not venda:
+            raise HTTPException(status_code=404, detail="Venda não encontrada")
+        
+        return VendaResponse.from_orm(venda)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao obter venda: {str(e)}")
+
+
+@router.put("/{venda_id}", response_model=VendaResponse, summary="Atualizar venda")
+async def atualizar_venda(
+    venda_id: int,
+    venda_update: VendaUpdate,
+    db: Session = Depends(get_db)
+):
+    """
+    Atualiza uma venda existente.
+    """
+    try:
+        db_venda = db.query(Venda).filter(Venda.id == venda_id).first()
+        if not db_venda:
+            raise HTTPException(status_code=404, detail="Venda não encontrada")
+        
+        # Atualiza apenas os campos fornecidos
+        update_data = venda_update.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_venda, field, value)
+        
+        db.commit()
+        db.refresh(db_venda)
+        
+        return VendaResponse.from_orm(db_venda)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar venda: {str(e)}")
+
+
+@router.delete("/{venda_id}", summary="Excluir venda")
+async def excluir_venda(
+    venda_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Exclui uma venda (hard delete).
+    """
+    try:
+        db_venda = db.query(Venda).filter(Venda.id == venda_id).first()
+        if not db_venda:
+            raise HTTPException(status_code=404, detail="Venda não encontrada")
+        
+        db.delete(db_venda)
+        db.commit()
+        
+        return {"message": "Venda excluída com sucesso"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao excluir venda: {str(e)}")
+
+
+@router.get("/vendedor/{vendedor_id}/metricas", response_model=VendedorMetricsResponse, summary="Métricas do vendedor")
+async def obter_metricas_vendedor(
+    vendedor_id: int,
+    data_inicio: Optional[date] = Query(None, description="Data de início para filtro"),
+    data_fim: Optional[date] = Query(None, description="Data de fim para filtro"),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtém métricas de vendas de um vendedor específico.
+    """
+    try:
+        # Verifica se o vendedor existe
+        vendedor = db.query(Vendedor).filter(Vendedor.id == vendedor_id).first()
+        if not vendedor:
+            raise HTTPException(status_code=404, detail="Vendedor não encontrado")
+        
+        # Query base para vendas do vendedor
+        query = db.query(Venda).filter(Venda.vendedor_id == vendedor_id)
+        
+        # Aplica filtros de data se fornecidos
+        if data_inicio:
+            query = query.filter(Venda.data >= data_inicio)
+        if data_fim:
+            query = query.filter(Venda.data <= data_fim)
+        
+        vendas = query.all()
+        
+        # Calcula métricas
+        total_vendas = len(vendas)
+        valor_total = sum(float(v.valor_mensal) for v in vendas)
+        valor_bonificacoes = sum(v.valor_bonificacao for v in vendas)
+        media_valor = valor_total / total_vendas if total_vendas > 0 else 0
+        
+        # Produtos mais vendidos
+        produtos = {}
+        for venda in vendas:
+            if venda.produto not in produtos:
+                produtos[venda.produto] = 0
+            produtos[venda.produto] += 1
+        
+        top_produtos = sorted(produtos.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        return VendedorMetricsResponse(
+            vendedor_id=vendedor_id,
+            nome_vendedor=vendedor.nome,
+            periodo={
+                "data_inicio": data_inicio.isoformat() if data_inicio else None,
+                "data_fim": data_fim.isoformat() if data_fim else None
+            },
+            total_vendas=total_vendas,
+            valor_total=round(valor_total, 2),
+            valor_bonificacoes=round(valor_bonificacoes, 2),
+            media_valor=round(media_valor, 2),
+            top_produtos=top_produtos
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao obter métricas: {str(e)}")

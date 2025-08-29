@@ -11,6 +11,9 @@ class HealthScoreSnapshot(Base, TimestampMixin):
     
     __tablename__ = "health_score_snapshot"
     
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
+    
     # Campos de identificação
     id_cliente = Column(ForeignKey("cliente.id"), nullable=False, index=True)
     id_assessor = Column(ForeignKey("assessor.id"), nullable=False, index=True)

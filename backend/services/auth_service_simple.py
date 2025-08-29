@@ -320,7 +320,10 @@ class SimpleAuthService:
                 "data_access": "department"
             },
             UserRole.VENDAS: {
-                "modules": ["dashboard", "clientes", "vendas"],
+                "modules": [
+                    "dashboard", "vendas_dashboard", "vendas_registro", 
+                    "vendas_vendedores", "vendas_dados"
+                ],
                 "actions": ["create", "read", "update"],
                 "data_access": "department"
             },
